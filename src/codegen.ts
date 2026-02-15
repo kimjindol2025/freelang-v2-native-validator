@@ -3,18 +3,32 @@
 
 import { Op, Inst, AIIntent, CompileResult } from './types';
 import { getBuiltinC } from './engine/builtins';
+import { LibraryResolver } from './codegen/library-resolver';
 
 export class CodeGen {
+  private resolver: LibraryResolver;
+
+  constructor() {
+    this.resolver = new LibraryResolver();
+  }
+
   generate(intent: AIIntent): string {
     const lines: string[] = [];
-    const includes = new Set<string>(['stdio.h', 'stdlib.h']);
 
-    // Check if math functions needed
-    for (const inst of intent.body) {
-      if ([Op.ARR_AVG, Op.ARR_MAX, Op.ARR_MIN].includes(inst.op)) {
-        includes.add('float.h');
-      }
-    }
+    // Use LibraryResolver to determine headers based on directive
+    const profile = this.resolver.resolveFromHeader({
+      fn: intent.fn,
+      input: intent.params.length > 0 ? intent.params[0].type : 'void',
+      output: intent.ret,
+      reason: 'Generated code',
+      directive: 'standard', // default directive, can be overridden by HeaderProposal
+      complexity: 'O(n)',
+      confidence: 100,
+      matched_op: intent.fn,
+    });
+
+    const includes = profile.headers;
+    const linkerFlags = profile.linkerFlags;
 
     // Includes
     for (const h of includes) {
