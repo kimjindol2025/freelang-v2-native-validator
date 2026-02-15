@@ -3,19 +3,30 @@
  *
  * .free 파일 형식의 함수 선언만 파싱
  *
- * 형식:
- *   [@minimal]          <- optional decorator
- *   fn <name>
- *   input: <type>
- *   output: <type>
- *   [intent: "<string>"] <- optional
+ * Phase 5 Task 1: One-line format (줄바꿈 생략)
+ * Phase 5 Task 2: Type omission (타입 추론)
+ * Phase 5 Task 3: Colon optional (콜론 제거 가능) ← NEW
  *
- * 예시:
+ * 지원 형식:
+ *   [@minimal]                              <- optional decorator
+ *   fn <name>
+ *   input [: ] <type>                       <- 콜론 선택적
+ *   output [: ] <type>                      <- 콜론 선택적
+ *   [intent [: ] "<string>"]                <- 콜론 선택적
+ *
+ * 예시 (Task 3):
  *   @minimal
  *   fn sum
  *   input: array<number>
  *   output: number
  *   intent: "배열 합산"
+ *
+ *   fn sum
+ *   input array<number>
+ *   output number
+ *   intent "배열 합산"
+ *
+ *   fn sum input array<number> output number intent "배열 합산"
  */
 import { Token, TokenType } from '../lexer/token';
 import { TokenBuffer } from '../lexer/lexer';
@@ -111,22 +122,26 @@ export class Parser {
     const fnName = nameToken.value;
 
     // Parse input type declaration
-    this.expect(TokenType.INPUT, 'Expected "input:" keyword');
-    this.expect(TokenType.COLON, 'Expected ":" after "input"');
-    // Phase 5: 타입 생략 가능 (intent에서 추론)
+    // Phase 5 Task 1: One-line format
+    this.expect(TokenType.INPUT, 'Expected "input" keyword');
+    // Phase 5 Task 3: Colon optional (콜론은 있어도 없어도 됨)
+    this.match(TokenType.COLON);
+    // Phase 5 Task 2: 타입 생략 가능 (intent에서 추론)
     const inputType = this.parseOptionalType();
 
     // Parse output type declaration
-    this.expect(TokenType.OUTPUT, 'Expected "output:" keyword');
-    this.expect(TokenType.COLON, 'Expected ":" after "output"');
-    // Phase 5: 타입 생략 가능 (intent에서 추론)
+    this.expect(TokenType.OUTPUT, 'Expected "output" keyword');
+    // Phase 5 Task 3: Colon optional
+    this.match(TokenType.COLON);
+    // Phase 5 Task 2: 타입 생략 가능 (intent에서 추론)
     const outputType = this.parseOptionalType();
 
     // Parse optional intent
     let intent: string | undefined;
     if (this.check(TokenType.INTENT)) {
       this.advance();
-      this.expect(TokenType.COLON, 'Expected ":" after "intent"');
+      // Phase 5 Task 3: Colon optional
+      this.match(TokenType.COLON);
       if (this.check(TokenType.STRING)) {
         intent = this.current().value;
         this.advance();

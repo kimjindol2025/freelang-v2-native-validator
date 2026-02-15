@@ -175,7 +175,7 @@ output: number`;
       const lexer = new Lexer(code);
       const buffer = new TokenBuffer(lexer);
 
-      expect(() => parseMinimalFunction(buffer)).toThrow('Expected "input:" keyword');
+      expect(() => parseMinimalFunction(buffer)).toThrow('Expected "input" keyword');
     });
 
     test('파싱 에러: missing output', () => {
@@ -185,7 +185,7 @@ input: array<number>`;
       const lexer = new Lexer(code);
       const buffer = new TokenBuffer(lexer);
 
-      expect(() => parseMinimalFunction(buffer)).toThrow('Expected "output:" keyword');
+      expect(() => parseMinimalFunction(buffer)).toThrow('Expected "output" keyword');
     });
   });
 
@@ -585,6 +585,165 @@ output:`; // intent 없이 타입 생략
       const proposal = astToProposal(ast);
 
       expect(ast.decorator).toBe('minimal');
+      expect(proposal.input).toBe('array<number>');
+      expect(proposal.output).toBe('array<number>'); // flatten은 배열 반환
+    });
+  });
+
+  // ============================================================================
+  // PART 8: Phase 5 Task 3 - Colon Optional (콜론 제거 가능)
+  // ============================================================================
+  describe('Phase 5 Task 3: Colon Optional (콜론 선택적 지원)', () => {
+    test('콜론 제거: input 없음', () => {
+      const freeCode = `fn sum
+input array<number>
+output number`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.fnName).toBe('sum');
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('number');
+    });
+
+    test('콜론 제거: output 없음', () => {
+      const freeCode = `fn process
+input array<string>
+output array<string>`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.inputType).toBe('array<string>');
+      expect(ast.outputType).toBe('array<string>');
+    });
+
+    test('콜론 제거: intent 있음 (콜론 없음)', () => {
+      const freeCode = `fn filter
+input array<number>
+output array<number>
+intent "필터링"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.intent).toBe('필터링');
+    });
+
+    test('콜론 제거: 모든 키워드에서', () => {
+      const freeCode = `fn sort
+input array<number>
+output array<number>
+intent "정렬"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.fnName).toBe('sort');
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('array<number>');
+      expect(ast.intent).toBe('정렬');
+    });
+
+    test('콜론 혼합 사용: 일부만 제거', () => {
+      const freeCode = `fn process
+input: array<number>
+output array<number>`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('array<number>');
+    });
+
+    test('콜론 혼합 사용: output과 intent에만 사용', () => {
+      const freeCode = `fn transform
+input array<string>
+output: array<string>
+intent: "변환"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.intent).toBe('변환');
+    });
+
+    test('한 줄 형식 + 콜론 제거: 완전 자유형', () => {
+      const freeCode = `fn sum input array<number> output number intent "배열 합산"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+      const proposal = astToProposal(ast);
+
+      expect(ast.fnName).toBe('sum');
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('number');
+      expect(ast.intent).toBe('배열 합산');
+      expect(proposal.confidence).toBe(0.98);
+    });
+
+    test('한 줄 형식 + 콜론 혼합: 형식 완전 자유화', () => {
+      const freeCode = `@minimal fn filter input: array<number> output array<number> intent "필터"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.decorator).toBe('minimal');
+      expect(ast.fnName).toBe('filter');
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('array<number>');
+    });
+
+    test('데코레이터 + 콜론 제거 + 한 줄', () => {
+      const freeCode = `@minimal fn max input array<number> output number intent "최댓값"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+
+      expect(ast.decorator).toBe('minimal');
+      expect(ast.fnName).toBe('max');
+      expect(ast.inputType).toBe('array<number>');
+      expect(ast.outputType).toBe('number');
+    });
+
+    test('콜론 제거 + 타입 생략: Task 2와 Task 3 조합', () => {
+      const freeCode = `fn unknown
+input
+output
+intent "배열 정렬"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+      const proposal = astToProposal(ast);
+
+      // intent에서 타입 추론
+      expect(proposal.input).toBe('array<number>');
+      expect(proposal.output).toBe('array<number>');
+    });
+
+    test('극한 자유형: 최소 형식 + 최대 유연성', () => {
+      const freeCode = `fn flatten input output intent "배열 평탄화"`;
+
+      const lexer = new Lexer(freeCode);
+      const buffer = new TokenBuffer(lexer);
+      const ast = parseMinimalFunction(buffer);
+      const proposal = astToProposal(ast);
+
+      // 모든 것이 생략: 타입도 intent에서 추론
+      expect(ast.inputType).toBe('');
+      expect(ast.outputType).toBe('');
       expect(proposal.input).toBe('array<number>');
       expect(proposal.output).toBe('array<number>'); // flatten은 배열 반환
     });
