@@ -345,7 +345,7 @@ typedef struct IRInstruction {
         float confidence;           // 0.0 ~ 1.0
         char directive[16];         // "speed" | "memory" | "safety"
         char source_text[256];      // 원본 자연어
-        char version_tag[16];       // "safe" | "fast" | "balanced"
+        char version_tag[16];       // "safe" | "fast" (Phase 5 이후: | "balanced")
     } metadata;
 
 } IRInstruction;
@@ -580,7 +580,7 @@ hint_unroll <loop_block>, <count>              ; 언롤 힌트
 ; ── FreeLang v2 IR ──
 ; input: "배열 더하기"
 ; confidence: 0.85
-; directive: balanced
+; directive: memory
 
 module "sum_example" {
 
@@ -597,7 +597,7 @@ module "sum_example" {
       branch %3, loop_body, loop_end
 
     loop_body:
-      bounds_check arr, %2                     ; 경계 검사 (safe/balanced)
+      bounds_check arr, %2                     ; 경계 검사 (safe, Phase 5 이후: balanced)
       %4 = array_get arr, %2                   ; arr[i]
       %5 = phi [%0, entry], [%7, loop_body]   ; result
       %7 = add %5, %4                         ; result += arr[i]
@@ -772,21 +772,22 @@ confidence < 0.60: "낮음" → 재생성 권장
   거절 시: new = old * 0.99
 ```
 
-### 10.2 directive (최적화 방향)
+### 10.2 directive (최적화 방향 - 사용자 선택)
 
 ```
 "speed":   성능 최우선, 안전성 희생 가능
 "memory":  메모리 최소화, 성능 희생 가능
 "safety":  안전성 최우선, 성능 희생 가능
-"balanced": 기본값, 적절한 균형
 ```
 
-### 10.3 version_tag (버전 태그)
+**참고**: "balanced"는 Phase 5 (Multi-Version Fork) 이후 추가될 예정
+
+### 10.3 version_tag (버전 태그 - Stage 5에서 생성)
 
 ```
-"safe":     Stage 5에서 안전형으로 분기된 IR
-"fast":     Stage 5에서 속도형으로 분기된 IR
-"balanced": Stage 5에서 균형형으로 분기된 IR
+"safe":     안전성 중심의 IR 버전
+"fast":     성능 중심의 IR 버전
+"balanced": Phase 5 이후 구현 예정
 ```
 
 ---

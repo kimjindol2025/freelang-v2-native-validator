@@ -23,7 +23,7 @@
 │   │    fn: sum                               │                │
 │   │    in: array<f64>, i32                   │                │
 │   │    out: f64                              │                │
-│   │    directive: balanced                   │                │
+│   │    directive: memory                     │                │
 │   │    confidence: 0.85                      │                │
 │   └────────────────┬────────────────────────┘                │
 │                    ↓                                          │
@@ -31,7 +31,7 @@
 │   │          Stage 2: Template               │                │
 │   │                                          │                │
 │   │  directive + intent → 알고리즘 선택      │                │
-│   │  sum + balanced → single_loop_sum        │                │
+│   │  sum + memory → single_loop_sum          │                │
 │   │                                          │                │
 │   │  출력: Skeleton AST                      │                │
 │   │    FunctionDecl(sum)                     │                │
@@ -113,7 +113,7 @@
   2. IntentMatcher: "배열_더하기" → intent: "sum"
   3. TypeInference: sum → array<f64>, i32 → f64
   4. ReasonInferencer: → "통계 연산 기초"
-  5. DirectiveDecider: → "balanced" (기본값)
+  5. DirectiveDecider: → "memory" (기본값)
   6. HeaderBuilder: → HeaderContract
   7. ConfidenceCalculator: → 0.85
 
@@ -152,7 +152,6 @@
   │ sum        │ speed     │ single_loop_unrolled     │
   │ sum        │ memory    │ single_loop_inplace      │
   │ sum        │ safety    │ checked_loop_sum         │
-  │ sum        │ balanced  │ single_loop_sum          │
   ├────────────┼───────────┼──────────────────────────┤
   │ average    │ *         │ sum_then_divide          │
   │ max        │ *         │ single_pass_max          │
@@ -212,7 +211,7 @@
   ArrayAccess (arr[i]):
     1. gen_expr(arr) → %arr_id
     2. gen_expr(i) → %idx_id
-    3. (safe/balanced) ir_builder_gen_bounds_check(%arr_id, %idx_id)
+    3. (safety directive) ir_builder_gen_bounds_check(%arr_id, %idx_id)  ; Phase 5 이후: balanced
     4. ir_builder_gen_array_get(%arr_id, %idx_id) → %val_id
 
   ReturnStatement:
@@ -289,11 +288,11 @@ Pass 3: Directive 최적화
 
 ---
 
-### Stage 5: Multi-Version Fork
+### Stage 5: Multi-Version Fork (Phase 5 이후 구현 예정)
 
 ```
 입력:  Optimized IRModule
-출력:  3개의 IRModule (safe, fast, balanced)
+출력:  3개의 IRModule (safe, fast)  ; Phase 5: balanced 추가
 시간:  <5ms
 
 알고리즘:
@@ -310,8 +309,8 @@ Pass 3: Directive 최적화
     - Pass 3 재실행 (speed 모드)
     - version_tag = "fast"
 
-  Balanced 복사본:
-    - directive = "balanced" (원본 유지)
+  Balanced 복사본 (Phase 5 이후):
+    - directive = "memory" (기본값)
     - version_tag = "balanced"
 
 AI에게 제안:

@@ -120,7 +120,7 @@ interface HeaderContract {
   confidence: number;     // 0.0 ~ 1.0
 }
 
-type Directive = "speed" | "memory" | "safety" | "balanced";
+type Directive = "speed" | "memory" | "safety";
 ```
 
 **참조 코드**: `/tmp/v2-freelang-ai/docs/AUTO-HEADER-ENGINE.md`
@@ -680,7 +680,7 @@ Stage 1: HeaderContract {
   output_type: f64,
   description: "배열의 모든 수를 더하기",
   reason: "통계 연산 기초",
-  directive: "balanced",
+  directive: "memory",
   confidence: 0.85
 }
 
