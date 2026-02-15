@@ -1,0 +1,35 @@
+# Build
+dist/
+build/
+*.o
+*.a
+
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test
+coverage/
+*.lcov
+
+# Generated
+*.c
+*.h
+
+# Temporary
+.tmp/
+temp/
+*.temp
+
+# Environment
+.env
+.env.local
