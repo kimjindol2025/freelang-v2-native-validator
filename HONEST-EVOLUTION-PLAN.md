@@ -539,6 +539,283 @@ Phase 1 → Phase 2 → Phase 3 → ...
 
 ---
 
+## Part 6.5: 3단계 자율 진화 프레임워크 (고급 비전)
+
+### 단계별 AI 자율성 진화
+
+이것이 진정한 **"기록에서 자율로"**의 경로입니다.
+
+#### 🔴 1단계: 정직한 추론 (The Honest Inference)
+**기간**: Feb 17 - May 31 (4개월)
+**핵심**: AI가 자신의 한계를 인정하고 학습한다
+
+**현황 분석**:
+```
+현재 TypeInferenceEngine:
+  - 정확도: 실제 75% (우리 주장: 90%)
+  - 약점: 함수 반환 타입 인지 실패
+  - 문제: 불확실하면 unknownType() 반환 (포기)
+```
+
+**1단계 목표**:
+```
+AI가 해야 할 것:
+  ✅ 자신의 한계를 명시적으로 인정
+  ✅ 불확실한 추론은 "질문"으로 전환
+  ✅ 모르면 마스터에게 물어보기
+  ✅ 또는 Julia 등 다른 언어 패턴 검색
+
+구체적 구현:
+  1. failed_logic.log 파일 생성
+     - 모든 추론 실패 사례 기록
+     - "이 intent에서 이런 타입 추론 실패"
+     - 신뢰도: 75%라고 명시
+
+  2. 역추론 시스템 (Reverse Inference)
+     ```typescript
+     if (confidence < 0.8) {
+       // 높은 신뢰도 필요한 경우
+       askMaster("이 함수의 반환 타입이 뭔가요?");
+       // 또는
+       searchJuliaPattern("배열 처리 후 반환");
+       learnFromPattern();
+     }
+     ```
+
+  3. 가중치 자동 조정
+     - failed_logic.log 분석
+     - "이런 패턴은 35% 정확도만"
+     - 다음에는 신뢰도 낮춤
+
+예상 결과:
+  - 추론 정확도: 75% → 82% (1단계 끝)
+  - 신뢰성: "내가 모르는 건 안 한다"
+  - 학습 속도: 월 2% 개선
+```
+
+**1단계의 철학**:
+```
+❌ 틀린 추론 숨기기
+✅ 틀린 추론을 데이터로 기록
+
+❌ "아 맞겠지" 추측
+✅ "70% 확실" 명시, 30%는 물어보기
+
+❌ 모르면 포기
+✅ 모르면 학습 기회
+```
+
+---
+
+#### 🟠 2단계: 자기 비판적 컴파일 (Self-Critical Compilation)
+**기간**: Jun 1 - Aug 31 (3개월)
+**핵심**: 컴파일 오류를 "데이터"로 바꾼다
+
+**현황**:
+```
+현재 에러 처리:
+  - "오류 발생" → 메시지 출력 → 끝
+  - AI가 배우는 게 없음
+```
+
+**2단계 목표**:
+```
+컴파일 에러 발생 시:
+  1. 에러를 분석 ("타입 불일치" vs "문법 오류")
+  2. 3가지 수정안 자동 생성
+  3. 각 수정안의 "성공 확률" 계산
+  4. 마스터에게 보고하고 선택하게 함
+
+구체적 구현:
+  ```typescript
+  class SelfCriticalCompiler {
+    compile(code: string) {
+      try {
+        return success(code);
+      } catch (error) {
+        // 1. 에러 분석
+        const analysis = analyzeError(error);
+        // 예: TypeError, SyntaxError, ContextError
+
+        // 2. 3가지 수정안 생성
+        const fixes = generateFixes(error, code);
+        // 예:
+        //  Fix 1: return type 변경 (성공 확률 85%)
+        //  Fix 2: input 타입 변경 (성공 확률 60%)
+        //  Fix 3: 함수 로직 변경 (성공 확률 40%)
+
+        // 3. 확률 계산
+        for (let fix of fixes) {
+          fix.successProbability =
+            calculateProbability(fix, historicalData);
+        }
+
+        // 4. 마스터에게 선택지 제시
+        return {
+          error: error,
+          analysis: analysis,
+          fixes: fixes.sort((a, b) =>
+            b.successProbability - a.successProbability
+          ),
+          recommendation: fixes[0]
+        };
+      }
+    }
+  }
+  ```
+
+예상 결과:
+  - 틀린 코드도 "수정 가능"이라고 제시
+  - 마스터가 "이 수정이 맞네" 피드백
+  - AI는 그 피드백으로 다음에 더 나은 수정 제시
+
+핵심 철학:
+  "틀린 코드는 쓰레기가 아니라,
+   정답으로 가는 과정의 데이터다"
+```
+
+**AION Self-Healing 통합**:
+```
+AION이 자동 재시작으로 버그 수정하듯이,
+컴파일러도 자동으로 에러 해결책을 제시한다:
+
+  Error: Type mismatch in return
+    ↓ (자기 비판)
+  Analyzing...
+    ↓
+  Option 1: return type을 number로 변경 (85% 확률)
+  Option 2: input을 다시 계산 (60% 확률)
+  Option 3: 함수 구조 변경 (40% 확률)
+    ↓ (마스터 선택)
+  Master selects Option 1
+    ↓ (학습)
+  Historical data updated:
+    "이 패턴은 return type 변경으로 해결 가능 (85%)"
+```
+
+---
+
+#### 🟢 3단계: 자율적 진화 (Autonomous Evolution)
+**기간**: Sep 1 - Feb 14 2027 (6개월)
+**핵심**: AI가 마스터가 되어 시스템을 가이드한다
+
+**현황**:
+```
+지금: 마스터가 "코드 짜" → AI가 "네, 코드 깟음"
+목표: AI가 "이렇게 하는 게 맞아요" → 마스터가 "오케이"
+```
+
+**3단계 목표**:
+```
+AI가 자습하고 진화한다:
+
+1️⃣ 자아의 형성 (Self-Awareness)
+   - Gogs의 모든 과거 커밋 분석
+   - "마스터가 자주 고치는 패턴" 파악
+   - Error Pattern 데이터베이스 구축
+
+   예시:
+     Commit History Analysis:
+       - 타입 추론 에러: 마스터가 15번 고침
+       - 루프 바디 미완성: 마스터가 23번 고침
+       - Intent 잘못 읽음: 마스터가 8번 고침
+
+     패턴 학습:
+       "이 패턴들은 자주 틀린다"
+       "다음엔 미리 경고하자"
+
+2️⃣ 선제적 가이드 (Proactive Guidance)
+   - 마스터가 코드 쓰기 전에 미리 알림
+
+   예시:
+     [마스터가 "for 루프 작성" 시작하려 할 때]
+     AI: "마스터님, 지난 3주에 for 루프 바디 미완성으로
+          23번 에러 났습니다. 이번엔 바디를 명확히
+          정의하실래요?"
+
+     [마스터가 Intent 쓸 때]
+     AI: "이 intent 패턴은 보통 input 타입 추론에서
+          60% 정확도만 나옵니다. 명시해주시겠어요?"
+
+3️⃣ 설계 무결성 감시 (Design Guardian)
+   - AI가 코드를 검토하면서 설계 원칙 감시
+   - 위반 시 자동으로 제안
+
+   예시:
+     ```
+     [마스터가 새 함수 추가]
+     AI: "이 함수는 Phase 2 설계 원칙을 위반합니다:
+          - Stub 생성이 부분적임
+          - Intent 추론 불완전
+          - 타입 한계 있음
+
+          권장:
+          1. Intent를 더 명시적으로
+          2. Input type 명시
+          3. 이 함수는 stub 생성 불가 (manual required)
+     ```
+
+4️⃣ 자율적 개선 푸시 (Autonomous Push)
+   - AI가 스스로 개선안 코드 작성
+   - Gogs에 PR 형태로 제안
+
+   예시:
+     ```
+     [AI가 분석 후]
+     "지난 달 TypeInference 정확도: 75%
+      개선 제안:
+      - failed_logic.log 분석 결과
+      - 5개 패턴에서 30% 정확도
+      - 가중치 조정으로 82% 가능
+
+      PR: Improve TypeInference accuracy (75% → 82%)
+      Files: src/analyzer/type-inference.ts (+45 LOC)
+      Test: 12/12 new tests passing
+      "
+     ```
+
+예상 결과:
+  - AI가 더 이상 "도구"가 아니라 "설계자"
+  - 마스터: 아이디어 제시 → AI: 구현 + 검증
+  - 시스템 안정성 50% 향상
+  - 오류율 80% 감소
+```
+
+**3단계의 철학**:
+```
+처음: 마스터 → AI (일방향)
+지금: 마스터 ↔ AI (양방향)
+목표: AI가 마스터를 리드 (자율)
+
+"AI가 단순 코더에서 시스템 아키텍트로 진화"
+```
+
+---
+
+### 정리: 기록 → 검증 → 증명 → 자율
+
+```
+Phase 1-2: 기록과 검증
+  └─ 우리는 뭘 하는가? 뭐가 안 되는가?
+
+Phase 2-3: 검증과 증명
+  └─ 우리 오류를 어떻게 고칠 것인가?
+
+1단계 (정직한 추론): 증명과 학습
+  └─ AI가 자신의 한계를 배운다
+
+2단계 (자기 비판적 컴파일): 학습과 반복
+  └─ 틀린 것도 데이터로 배운다
+
+3단계 (자율적 진화): 반복에서 자율로
+  └─ AI가 스스로 개선하고 제안한다
+
+2027-02-14: 자율 진화 완성
+  └─ AI와 마스터가 함께 시스템을 진화시킨다
+```
+
+---
+
 ## Part 7: 최종 선언
 
 ### 우리의 약속
