@@ -29,70 +29,65 @@ describe('Project Ouroboros: Phase 1 - Self-Hosting Lexer', () => {
     const lexerFilePath = path.join(__dirname, '../src/self-host/lexer.free');
     const content = fs.readFileSync(lexerFilePath, 'utf-8');
 
-    // 메인 함수 추출
-    const mainFuncMatch = content.match(/fn freelang_tokenize[\s\S]*?\{[\s\S]*?\}/);
-    expect(mainFuncMatch).not.toBeNull();
+    // 전체 파일을 파싱 (단일 함수로 리팩토링됨)
+    const lexer = new Lexer(content);
+    const buffer = new TokenBuffer(lexer);
+    const ast = parseMinimalFunction(buffer);
 
-    if (mainFuncMatch) {
-      const funcCode = mainFuncMatch[0];
-      console.log(`✅ freelang_tokenize 함수 길이: ${funcCode.length}바이트`);
+    expect(ast.fnName).toBe('freelang_tokenize');
+    expect(ast.inputType).toBe('string');
+    expect(ast.outputType).toContain('array');
+    expect(ast.body).toBeDefined();
+    expect(ast.body!.length).toBeGreaterThan(0);
 
-      // Lexer와 Parser로 파싱
-      const lexer = new Lexer(funcCode);
-      const buffer = new TokenBuffer(lexer);
-      const ast = parseMinimalFunction(buffer);
-
-      expect(ast.fnName).toBe('freelang_tokenize');
-      expect(ast.inputType).toBe('string');
-      expect(ast.outputType).toContain('array');
-      expect(ast.body).toBeDefined();
-      expect(ast.body!.length).toBeGreaterThan(0);
-
-      console.log(`✅ 함수명: ${ast.fnName}`);
-      console.log(`✅ 입력 타입: ${ast.inputType}`);
-      console.log(`✅ 출력 타입: ${ast.outputType}`);
-      console.log(`✅ 본체 크기: ${ast.body!.length}바이트`);
-    }
+    console.log(`✅ 함수명: ${ast.fnName}`);
+    console.log(`✅ 입력 타입: ${ast.inputType}`);
+    console.log(`✅ 출력 타입: ${ast.outputType}`);
+    console.log(`✅ 본체 크기: ${ast.body!.length}바이트`);
   });
 
   test('본체 분석: 루프와 조건 감지', () => {
     const lexerFilePath = path.join(__dirname, '../src/self-host/lexer.free');
     const content = fs.readFileSync(lexerFilePath, 'utf-8');
 
-    const mainFuncMatch = content.match(/fn freelang_tokenize[\s\S]*?\{[\s\S]*?\}/);
-    expect(mainFuncMatch).not.toBeNull();
+    // 전체 파일을 파싱 (단일 함수로 리팩토링됨)
+    const lexer = new Lexer(content);
+    const buffer = new TokenBuffer(lexer);
+    const ast = parseMinimalFunction(buffer);
 
-    if (mainFuncMatch) {
-      const funcCode = mainFuncMatch[0];
-      const lexer = new Lexer(funcCode);
-      const buffer = new TokenBuffer(lexer);
-      const ast = parseMinimalFunction(buffer);
+    const analysis = analyzeBody(ast.body!);
 
-      const analysis = analyzeBody(ast.body!);
+    // Lexer는 여러 루프를 포함함
+    expect(analysis.loops.hasLoop).toBe(true);
+    expect(analysis.loops.loopCount).toBeGreaterThan(0);
 
-      // Lexer는 여러 루프를 포함함
-      expect(analysis.loops.hasLoop).toBe(true);
-      expect(analysis.loops.loopCount).toBeGreaterThan(0);
-
-      console.log(`✅ 루프 개수: ${analysis.loops.loopCount}`);
-      console.log(`✅ 중첩 루프 여부: ${analysis.loops.hasNestedLoop}`);
-      console.log(`✅ 분석 신뢰도: ${(analysis.confidence * 100).toFixed(1)}%`);
-    }
+    console.log(`✅ 루프 개수: ${analysis.loops.loopCount}`);
+    console.log(`✅ 중첩 루프 여부: ${analysis.loops.hasNestedLoop}`);
+    console.log(`✅ 분석 신뢰도: ${(analysis.confidence * 100).toFixed(1)}%`);
   });
 
-  test('모든 도우미 함수를 파싱할 수 있는가', () => {
+  test('인라인된 도우미 로직이 모두 포함되는가', () => {
     const lexerFilePath = path.join(__dirname, '../src/self-host/lexer.free');
     const content = fs.readFileSync(lexerFilePath, 'utf-8');
 
-    const functionNames = ['isDigit', 'isLetter', 'charAt', 'length', 'substr', 'push'];
+    // Phase 1에서 모든 도우미 함수는 메인 함수 내부로 인라인됨
+    // isDigit, isLetter 로직은 직접 문자 비교로 구현됨
 
-    functionNames.forEach(funcName => {
-      const regex = new RegExp(`fn ${funcName}[^}]*\\}`, 's');
-      const match = content.match(regex);
+    // 숫자 판별: >= '0' and <= '9'
+    expect(content.includes(">= '0' and")).toBe(true);
+    expect(content.includes("<= '9'")).toBe(true);
+    console.log(`✅ 숫자 판별 로직 인라인화 (isDigit)`);
 
-      expect(match).not.toBeNull();
-      console.log(`✅ 함수 ${funcName} 정의 발견`);
-    });
+    // 문자 판별: >= 'a' and <= 'z' or >= 'A' and <= 'Z'
+    expect(content.includes(">= 'a' and")).toBe(true);
+    expect(content.includes("<= 'z'")).toBe(true);
+    expect(content.includes(">= 'A' and")).toBe(true);
+    expect(content.includes("<= 'Z'")).toBe(true);
+    console.log(`✅ 문자 판별 로직 인라인화 (isLetter)`);
+
+    // 단일 함수로 통합됨
+    expect(content.includes('fn freelang_tokenize')).toBe(true);
+    console.log(`✅ 단일 함수로 통합 완료 (Self-Hosting Lexer)`);
   });
 
   test('String 함수들이 사용되는가', () => {

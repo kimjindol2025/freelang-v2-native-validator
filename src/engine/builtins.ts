@@ -141,6 +141,79 @@ export const BUILTINS: Record<string, BuiltinSpec> = {
     headers: ['stdio.h'],
     impl: (...args: any[]) => console.log(...args),
   },
+
+  // ────────────────────────────────────────
+  // String operations (Project Ouroboros)
+  // ────────────────────────────────────────
+
+  charAt: {
+    name: 'charAt',
+    params: [
+      { name: 'str', type: 'string' },
+      { name: 'index', type: 'number' },
+    ],
+    return_type: 'string',
+    c_name: 'char_at',
+    headers: ['string.h'],
+    impl: (str: string, index: number) => str[Math.floor(index)] || '',
+  },
+
+  // Override length for string (in addition to array)
+  // Note: We'll handle both in the interpreter
+  string_length: {
+    name: 'length',  // Will be resolved by context
+    params: [{ name: 'str', type: 'string' }],
+    return_type: 'number',
+    c_name: 'strlen',
+    headers: ['string.h'],
+    impl: (str: string) => (typeof str === 'string' ? str.length : 0),
+  },
+
+  substr: {
+    name: 'substr',
+    params: [
+      { name: 'str', type: 'string' },
+      { name: 'start', type: 'number' },
+      { name: 'end', type: 'number' },
+    ],
+    return_type: 'string',
+    c_name: 'substr',
+    headers: ['string.h'],
+    impl: (str: string, start: number, end: number) =>
+      str.substring(Math.floor(start), Math.floor(end)),
+  },
+
+  isDigit: {
+    name: 'isDigit',
+    params: [{ name: 'ch', type: 'string' }],
+    return_type: 'boolean',
+    c_name: 'isdigit',
+    headers: ['ctype.h'],
+    impl: (ch: string) => /^\d$/.test(ch),
+  },
+
+  isLetter: {
+    name: 'isLetter',
+    params: [{ name: 'ch', type: 'string' }],
+    return_type: 'boolean',
+    c_name: 'isalpha',
+    headers: ['ctype.h'],
+    impl: (ch: string) => /^[a-zA-Z]$/.test(ch),
+  },
+
+  push: {
+    name: 'push',
+    params: [
+      { name: 'arr', type: 'array<number>' },
+      { name: 'element', type: 'number' },
+    ],
+    return_type: 'void',
+    c_name: 'arr_push',
+    headers: ['stdlib.h'],
+    impl: (arr: any[], element: any) => {
+      if (Array.isArray(arr)) arr.push(element);
+    },
+  },
 };
 
 // ────────────────────────────────────────

@@ -2,7 +2,7 @@
 fn freelang_tokenize
 input: string
 output: array<string>
-intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
+intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer) - 단일 함수"
 {
   let tokens = [];
   let i = 0;
@@ -11,15 +11,14 @@ intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
   while i < len_input {
     let ch = charAt(input, i);
 
-    // 공백/탭 스킵
+    // 공백/탭/줄바꿈 스킵
     if ch == ' ' or ch == '\t' or ch == '\n' or ch == '\r' {
       i += 1;
       continue;
     }
 
-    // 주석: //
+    // 주석: // (줄 끝까지)
     if ch == '/' and i + 1 < len_input and charAt(input, i + 1) == '/' {
-      // 줄 끝까지 스킵
       while i < len_input and charAt(input, i) != '\n' {
         i += 1;
       }
@@ -56,17 +55,30 @@ intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
       continue;
     }
 
-    // 숫자: 0-9
-    if isDigit(ch) {
+    // 숫자: 0-9 (소수점 포함)
+    let is_digit = ch >= '0' and ch <= '9';
+    if is_digit {
       let start = i;
-      while i < len_input and isDigit(charAt(input, i)) {
-        i += 1;
+      while i < len_input {
+        let c = charAt(input, i);
+        let c_is_digit = c >= '0' and c <= '9';
+        if c_is_digit {
+          i += 1;
+        } else {
+          break;
+        }
       }
-      // 소수점
+      // 소수점 처리
       if i < len_input and charAt(input, i) == '.' {
         i += 1;
-        while i < len_input and isDigit(charAt(input, i)) {
-          i += 1;
+        while i < len_input {
+          let c = charAt(input, i);
+          let c_is_digit = c >= '0' and c <= '9';
+          if c_is_digit {
+            i += 1;
+          } else {
+            break;
+          }
         }
       }
       let num_token = substr(input, start, i);
@@ -75,11 +87,14 @@ intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
     }
 
     // 식별자/키워드: a-z, A-Z, _
-    if isLetter(ch) or ch == '_' {
+    let is_letter = (ch >= 'a' and ch <= 'z') or (ch >= 'A' and ch <= 'Z');
+    if is_letter or ch == '_' {
       let start = i;
       while i < len_input {
         let c = charAt(input, i);
-        if isLetter(c) or isDigit(c) or c == '_' {
+        let c_is_letter = (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z');
+        let c_is_digit = c >= '0' and c <= '9';
+        if c_is_letter or c_is_digit or c == '_' {
           i += 1;
         } else {
           break;
@@ -97,7 +112,7 @@ intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
       if two_char == '==' or two_char == '!=' or two_char == '<=' or two_char == '>=' or
          two_char == '&&' or two_char == '||' or two_char == '+=' or two_char == '-=' or
          two_char == '*=' or two_char == '/=' or two_char == '%=' or two_char == '->' or
-         two_char == '=>' or two_char == '::'or two_char == '..' or two_char == '|>' {
+         two_char == '=>' or two_char == '::' or two_char == '..' or two_char == '|>' {
         push(tokens, two_char);
         i += 2;
         continue;
@@ -120,68 +135,4 @@ intent: "프리랭 소스 코드를 토큰으로 분할 (Self-Hosting Lexer)"
   }
 
   return tokens;
-}
-
-fn isDigit
-input: string
-output: bool
-intent: "문자가 숫자인지 확인"
-{
-  if length(input) != 1 {
-    return false;
-  }
-  let ch = charAt(input, 0);
-  return ch >= '0' and ch <= '9';
-}
-
-fn isLetter
-input: string
-output: bool
-intent: "문자가 알파벳인지 확인"
-{
-  if length(input) != 1 {
-    return false;
-  }
-  let ch = charAt(input, 0);
-  return (ch >= 'a' and ch <= 'z') or (ch >= 'A' and ch <= 'Z');
-}
-
-fn charAt
-input: string
-output: string
-intent: "문자열의 특정 인덱스에서 문자 추출"
-{
-  // Note: 이 함수는 프리랭 표준 라이브러리에서 제공되어야 함
-  // 현재는 스텁으로 구현
-  return " ";
-}
-
-fn length
-input: string
-output: number
-intent: "문자열 길이 반환"
-{
-  // Note: 이 함수는 프리랭 표준 라이브러리에서 제공되어야 함
-  // 현재는 스텁으로 구현
-  return 0;
-}
-
-fn substr
-input: string
-output: string
-intent: "문자열 부분 추출"
-{
-  // Note: 이 함수는 프리랭 표준 라이브러리에서 제공되어야 함
-  // 현재는 스텁으로 구현
-  return "";
-}
-
-fn push
-input: array<string>
-output: bool
-intent: "배열에 요소 추가"
-{
-  // Note: 이 함수는 프리랭 표준 라이브러리에서 제공되어야 함
-  // 현재는 스텁으로 구현
-  return true;
 }
