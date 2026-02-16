@@ -23,6 +23,25 @@ function measureTime(label: string, fn: () => void): number {
 }
 
 describe('Phase 6: Performance Profiling', () => {
+  /**
+   * JIT 워밍업: 성능 테스트 전에 함수들을 여러 번 호출
+   * 이를 통해 V8 JavaScript 엔진이 JIT 컴파일을 수행하도록 함
+   * 첫 호출은 Interpreted 모드로 느리지만, 이후 호출은 JIT 최적화됨
+   */
+  beforeAll(() => {
+    const warmupCode = `fn test input: number output: number intent: "test"`;
+    const warmupBody = 'let x = 0; for i in 0..10 { x += i; } return x;';
+
+    console.log('\n🔥 JIT 워밍업 중...');
+    for (let i = 0; i < 10; i++) {
+      const lexer = new Lexer(warmupCode);
+      const buffer = new TokenBuffer(lexer);
+      parseMinimalFunction(buffer);
+      analyzeBody(warmupBody);
+    }
+    console.log('✅ 워밍업 완료\n');
+  });
+
   // ============================================================================
   // 1️⃣ 파싱 성능 (Lexer + Parser)
   // ============================================================================
