@@ -248,8 +248,9 @@ export class TypeInferenceEngine {
       }
       // Priority 3: Operations
       else {
-        // Arithmetic operations (- * / % are definitely number)
-        if (new RegExp(`${param}\\s*[\\-*/%]`).test(body)) {
+        // Arithmetic operations: before or after the operator
+        // param - x, x - param, param * x, x * param, etc.
+        if (new RegExp(`${param}\\s*[\\-*/%]|[\\-*/%]\\s*${param}`).test(body)) {
           inferredType = 'number';
         }
         // Addition: could be string or number
@@ -333,14 +334,18 @@ export class TypeInferenceEngine {
     // 4. Check binary operations (FIXED: better type handling)
 
     // String concatenation: "text" + "more" or "text" + variable
-    // If expression contains both string literals and +, it's string
     if (expr.includes('+')) {
       const hasStringLiteral = /["']/.test(expr);
       if (hasStringLiteral) {
         return 'string';  // String concatenation
       }
-      // Otherwise, could be number addition, but uncertain
-      // Return 'any' to avoid false positives
+      // Check if both sides are numbers (e.g., 10 + 5)
+      const parts = expr.split('+').map(s => s.trim());
+      if (parts.length === 2 && /^\d+(\.\d+)?$/.test(parts[0]) && /^\d+(\.\d+)?$/.test(parts[1])) {
+        // Both sides are number literals
+        return 'number';
+      }
+      // Otherwise uncertain (could be number + variable or variable + anything)
       return 'any';
     }
 
