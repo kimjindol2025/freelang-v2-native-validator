@@ -46,7 +46,15 @@ import {
   VariablePattern,
   WildcardPattern,
   StructPattern,
-  ArrayPattern
+  ArrayPattern,
+  Statement,
+  ExpressionStatement,
+  VariableDeclaration,
+  IfStatement,
+  ForStatement,
+  WhileStatement,
+  ReturnStatement,
+  BlockStatement
 } from './ast';
 
 /**
@@ -754,6 +762,202 @@ export class Parser {
       token.column,
       `Unexpected token in pattern: ${token.type}`
     );
+  }
+
+  /**
+   * Phase 16: Statement 파싱 (변수 선언, if, for 등)
+   *
+   * 지원하는 문장:
+   *   - let 변수 선언
+   *   - let mut 가변 변수 선언
+   *   - if 조건문
+   *   - for 반복문
+   *   - while 반복문
+   *   - return 반환문
+   *   - 표현식 문장
+   */
+  public parseStatement(): Statement {
+    // let 변수 선언
+    if (this.check(TokenType.LET)) {
+      return this.parseVariableDeclaration();
+    }
+
+    // if 문
+    if (this.check(TokenType.IF)) {
+      return this.parseIfStatement();
+    }
+
+    // for 문
+    if (this.check(TokenType.FOR)) {
+      return this.parseForStatement();
+    }
+
+    // while 문
+    if (this.check(TokenType.WHILE)) {
+      return this.parseWhileStatement();
+    }
+
+    // return 문
+    if (this.check(TokenType.RETURN)) {
+      return this.parseReturnStatement();
+    }
+
+    // 블록 문
+    if (this.check(TokenType.LBRACE)) {
+      return this.parseBlockStatement();
+    }
+
+    // 표현식 문장
+    const expr = this.parseExpression();
+    return {
+      type: 'expression',
+      expression: expr
+    } as ExpressionStatement;
+  }
+
+  /**
+   * Phase 16: 변수 선언 파싱
+   *
+   * 형식:
+   *   let x = 10
+   *   let mut y = 20
+   *   let name: string = "Alice"
+   *   let mut count: number = 0
+   */
+  private parseVariableDeclaration(): VariableDeclaration {
+    this.expect(TokenType.LET, 'Expected "let"');
+
+    // 가변성 검사 (let mut)
+    let mutable = false;
+    if (this.check(TokenType.MUT)) {
+      mutable = true;
+      this.advance();
+    }
+
+    // 변수 이름
+    const nameToken = this.expect(TokenType.IDENT, 'Expected variable name');
+    const name = nameToken.value;
+
+    // 선택적 타입 어노테이션 (: type)
+    let varType: string | undefined;
+    if (this.check(TokenType.COLON)) {
+      this.advance();
+      varType = this.parseType();
+    }
+
+    // 선택적 초기값 (= value)
+    let value: Expression | undefined;
+    if (this.check(TokenType.ASSIGN)) {
+      this.advance();
+      value = this.parseExpression();
+    }
+
+    // 선택적 세미콜론
+    this.match(TokenType.SEMICOLON);
+
+    return {
+      type: 'variable',
+      name,
+      varType,
+      value,
+      mutable
+    };
+  }
+
+  /**
+   * Phase 16: If 문 파싱
+   */
+  private parseIfStatement(): IfStatement {
+    this.expect(TokenType.IF, 'Expected "if"');
+    const condition = this.parseExpression();
+
+    const consequent = this.parseBlockStatement();
+
+    let alternate: BlockStatement | undefined;
+    if (this.check(TokenType.ELSE)) {
+      this.advance();
+      alternate = this.parseBlockStatement();
+    }
+
+    return {
+      type: 'if',
+      condition,
+      consequent,
+      alternate
+    };
+  }
+
+  /**
+   * Phase 16: For 문 파싱
+   *
+   * 형식: for i in range(10) { ... }
+   */
+  private parseForStatement(): ForStatement {
+    this.expect(TokenType.FOR, 'Expected "for"');
+    const variable = this.expect(TokenType.IDENT, 'Expected loop variable').value;
+    this.expect(TokenType.IN, 'Expected "in"');
+    const iterable = this.parseExpression();
+    const body = this.parseBlockStatement();
+
+    return {
+      type: 'for',
+      variable,
+      iterable,
+      body
+    };
+  }
+
+  /**
+   * Phase 16: While 문 파싱
+   */
+  private parseWhileStatement(): WhileStatement {
+    this.expect(TokenType.WHILE, 'Expected "while"');
+    const condition = this.parseExpression();
+    const body = this.parseBlockStatement();
+
+    return {
+      type: 'while',
+      condition,
+      body
+    };
+  }
+
+  /**
+   * Phase 16: Return 문 파싱
+   */
+  private parseReturnStatement(): ReturnStatement {
+    this.expect(TokenType.RETURN, 'Expected "return"');
+
+    let argument: Expression | undefined;
+    if (!this.check(TokenType.SEMICOLON) && !this.check(TokenType.RBRACE) && !this.check(TokenType.EOF)) {
+      argument = this.parseExpression();
+    }
+
+    this.match(TokenType.SEMICOLON);
+
+    return {
+      type: 'return',
+      argument
+    };
+  }
+
+  /**
+   * Phase 16: 블록 문 파싱 { ... }
+   */
+  private parseBlockStatement(): BlockStatement {
+    this.expect(TokenType.LBRACE, 'Expected "{"');
+
+    const body: Statement[] = [];
+    while (!this.check(TokenType.RBRACE) && !this.check(TokenType.EOF)) {
+      body.push(this.parseStatement());
+    }
+
+    this.expect(TokenType.RBRACE, 'Expected "}"');
+
+    return {
+      type: 'block',
+      body
+    };
   }
 
   /**

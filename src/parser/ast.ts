@@ -178,6 +178,7 @@ export interface VariableDeclaration {
   name: string;
   varType?: string;
   value?: Expression;
+  mutable?: boolean;  // Phase 16: let vs let mut
 }
 
 export interface IfStatement {

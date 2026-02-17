@@ -1,0 +1,59 @@
+# Development
+src/
+tests/
+jest.config.js
+tsconfig.json
+.ts-jest/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (배포에 불필요한 문서)
+*.md
+!README.md
+docs/
+
+# Logs
+*.log
+logs/
+
+# Temporary
+.tmp/
+temp/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Performance/Security reports
+SECURITY_AUDIT_*.md
+TEST_RESULTS_*.md
+failed_logic.log
+
+# Node
+node_modules/
+package-lock.json
+
+# Build artifacts (dist는 포함)
+*.tsbuildinfo
+
+# Additional
+.npmrc
+.eslintignore
+.eslintrc.json
