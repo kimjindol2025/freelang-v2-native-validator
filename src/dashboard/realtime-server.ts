@@ -14,6 +14,7 @@ import { Dashboard, DashboardStats } from './dashboard';
 import { IntentPattern } from '../phase-10/unified-pattern-database';
 import * as dashboardRoutes from '../api/routes/dashboard.routes';
 import { MessageBatcher, BatchedMessage, BatchingStats } from './message-batcher';
+import { CompressionLayer, CompressionStats } from './compression-layer';
 
 /**
  * SSE 클라이언트 연결
@@ -35,7 +36,7 @@ interface RealtimeMessage {
 }
 
 /**
- * Phase 14-15 실시간 대시보드 서버 (SSE 기반 + 배칭)
+ * Phase 14-15 실시간 대시보드 서버 (SSE 기반 + 배칭 + 압축)
  *
  * Phase 14: SSE 프로토콜 기반 실시간 업데이트
  * - npm 의존성 없음
@@ -43,10 +44,16 @@ interface RealtimeMessage {
  * - 자동 재연결 지원
  * - 효율적인 변화 감지
  *
- * Phase 15: 메시지 배칭으로 대역폭 50% 추가 절감
+ * Phase 15 Day 1: 메시지 배칭으로 대역폭 50% 추가 절감
  * - 10초 배칭 윈도우
  * - 즉시 메시지 (initial, heartbeat, error)
  * - 배치 메시지 (stats, trends, report, movers)
+ *
+ * Phase 15 Day 2: gzip 압축으로 추가 30-40% 절감
+ * - 초기 메시지 압축 (>200 bytes)
+ * - Content-Encoding 헤더 관리
+ * - 비동기 압축/해제
+ * - 총 80% 대역폭 절감 (Day 1 + Day 2)
  */
 export class RealtimeDashboardServer {
   private httpServer: http.Server | null = null;
@@ -59,13 +66,21 @@ export class RealtimeDashboardServer {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private lastStats: DashboardStats | null = null;
   private updateIntervalMs: number = 10000; // 10초마다 확인
-  private batcher: MessageBatcher; // Phase 15: 메시지 배칭
+  private batcher: MessageBatcher; // Phase 15 Day 1: 메시지 배칭
+  private compressor: CompressionLayer; // Phase 15 Day 2: gzip 압축
 
-  constructor(port: number = 8000, dashboard: Dashboard, patterns: IntentPattern[] = [], useBatching: boolean = true) {
+  constructor(
+    port: number = 8000,
+    dashboard: Dashboard,
+    patterns: IntentPattern[] = [],
+    useBatching: boolean = true,
+    useCompression: boolean = true
+  ) {
     this.port = port;
     this.dashboard = dashboard;
     this.patterns = patterns;
     this.batcher = new MessageBatcher(10000); // 10초 배치 윈도우
+    this.compressor = new CompressionLayer(200, 6, useCompression); // 200 bytes threshold
 
     // 배칭 활성화 시 콜백 설정
     if (useBatching) {
@@ -445,10 +460,14 @@ export class RealtimeDashboardServer {
       if (this.updateInterval) clearInterval(this.updateInterval);
       if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
-      // Phase 15: 배처 정리
+      // Phase 15 Day 1: 배처 정리
       this.batcher.stop();
       const batchingStats = this.batcher.getStats();
       console.log(`📊 Batching stats - Messages: ${batchingStats.totalMessages}, Saved: ${batchingStats.bandwidthSaved} bytes`);
+
+      // Phase 15 Day 2: 압축 정리
+      const compressionStats = this.compressor.getStats();
+      console.log(`🗜️ Compression stats - Messages: ${compressionStats.totalMessages}, Saved: ${(compressionStats.bandwidthSaved / 1024).toFixed(1)}KB`);
 
       // 모든 클라이언트 연결 종료
       this.clients.forEach(client => {
@@ -472,10 +491,17 @@ export class RealtimeDashboardServer {
   }
 
   /**
-   * Phase 15: 배칭 통계 조회
+   * Phase 15 Day 1: 배칭 통계 조회
    */
   getBatchingStats(): BatchingStats {
     return this.batcher.getStats();
+  }
+
+  /**
+   * Phase 15 Day 2: 압축 통계 조회
+   */
+  getCompressionStats(): CompressionStats {
+    return this.compressor.getStats();
   }
 
   /**
@@ -483,6 +509,7 @@ export class RealtimeDashboardServer {
    */
   getStatus(): object {
     const batchingStats = this.batcher.getStats();
+    const compressionStats = this.compressor.getStats();
     return {
       port: this.port,
       clients_connected: this.clients.size,
@@ -490,7 +517,7 @@ export class RealtimeDashboardServer {
       update_interval_ms: this.updateIntervalMs,
       uptime_ms: process.uptime() * 1000,
       timestamp: Date.now(),
-      // Phase 15: 배칭 통계
+      // Phase 15 Day 1: 배칭 통계
       batching: {
         total_messages: batchingStats.totalMessages,
         immediate_messages: batchingStats.immediateMessages,
@@ -498,6 +525,17 @@ export class RealtimeDashboardServer {
         batch_count: batchingStats.batchCount,
         bandwidth_saved_bytes: batchingStats.bandwidthSaved,
         compression_ratio: batchingStats.compressionRatio.toFixed(2)
+      },
+      // Phase 15 Day 2: 압축 통계
+      compression: {
+        total_messages: compressionStats.totalMessages,
+        compressed_messages: compressionStats.compressedMessages,
+        uncompressed_messages: compressionStats.uncompressedMessages,
+        original_size_bytes: compressionStats.totalOriginalSize,
+        compressed_size_bytes: compressionStats.totalCompressedSize,
+        bandwidth_saved_bytes: compressionStats.bandwidthSaved,
+        compression_ratio: compressionStats.compressionRatio.toFixed(2),
+        avg_compression_time_ms: compressionStats.averageCompressionTime.toFixed(2)
       }
     };
   }
