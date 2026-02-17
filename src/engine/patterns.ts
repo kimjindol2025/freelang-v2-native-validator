@@ -210,6 +210,13 @@ export const keywordToOp: Record<string, string> = {
   'http_json_post': 'http_json_post',
   'http_head': 'http_head',
   'http_patch': 'http_patch',
+
+  // Phase 13 Week 3: Advanced HTTP
   'http_batch': 'http_batch',
+  'batch': 'http_batch',
+  'parallel': 'http_batch',
+  'concurrent': 'http_batch',
   'http_get_with_retry': 'http_get_with_retry',
+  'retry': 'http_get_with_retry',
+  'resilient': 'http_get_with_retry',
 };

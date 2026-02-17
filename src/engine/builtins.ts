@@ -299,6 +299,58 @@ export const BUILTINS: Record<string, BuiltinSpec> = {
       return await HttpWrapper.patch(url, body);
     },
   },
+
+  // ────────────────────────────────────────
+  // Advanced HTTP (Phase 13 Week 3)
+  // ────────────────────────────────────────
+
+  http_batch: {
+    name: 'http_batch',
+    params: [
+      { name: 'urls', type: 'array<string>' },
+      { name: 'limit', type: 'number' },
+    ],
+    return_type: 'array<object>',
+    c_name: 'http_batch',
+    headers: ['curl.h'],
+    impl: async (urls: string[], limit: number = 10) => {
+      const { HttpBatch } = await import('./http-batch');
+      const { HttpWrapper } = await import('./http-wrapper');
+      const result = await HttpBatch.withLimit(
+        urls,
+        Math.max(1, Math.floor(limit)),
+        url => HttpWrapper.get(url),
+        { continueOnError: true }
+      );
+      return result.results;
+    },
+  },
+
+  http_get_with_retry: {
+    name: 'http_get_with_retry',
+    params: [
+      { name: 'url', type: 'string' },
+      { name: 'max_retries', type: 'number' },
+    ],
+    return_type: 'object',
+    c_name: 'http_get_with_retry',
+    headers: ['curl.h'],
+    impl: async (url: string, maxRetries: number = 3) => {
+      const { HttpRetry } = await import('./http-retry');
+      const { HttpWrapper } = await import('./http-wrapper');
+      return await HttpRetry.withRetry(
+        () => HttpWrapper.get(url),
+        {
+          maxRetries: Math.max(0, Math.floor(maxRetries)),
+          backoffMs: 1000,
+          retryOn: (error: any) => {
+            // 5xx 또는 네트워크 에러만 재시도
+            return HttpRetry.isRetryableError(error);
+          },
+        }
+      );
+    },
+  },
 };
 
 // ────────────────────────────────────────
