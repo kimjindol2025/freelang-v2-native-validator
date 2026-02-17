@@ -485,6 +485,24 @@ export class RealtimeDashboardServer {
             res.end(response);
             return;
 
+          case '/api/dashboard/confidence-report':
+            response = this.dashboard.getConfidenceReport(this.patterns);
+            break;
+
+          case '/api/dashboard/categories':
+            response = this.dashboard.getCategoryBreakdown(this.patterns);
+            break;
+
+          case '/api/dashboard/top-movers':
+            const limit = parseInt(urlParts[1]?.split('limit=')[1] || '10', 10);
+            response = this.dashboard.getTopMovers(this.patterns, limit);
+            break;
+
+          case '/api/dashboard/confidence-trends':
+            const days = parseInt(urlParts[1]?.split('days=')[1] || '7', 10);
+            response = this.dashboard.getConfidenceTrends(this.patterns, days);
+            break;
+
           case '/favicon.ico':
             // favicon 요청 무시
             res.writeHead(204);
