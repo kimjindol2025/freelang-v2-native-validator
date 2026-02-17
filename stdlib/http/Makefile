@@ -92,3 +92,14 @@ lib-clean: clean
 
 install: lib-build
 	@echo "✅ libhttp.so installed"
+
+# ===== wrk: HTTP Benchmarking Tool =====
+
+WRK_TARGET = $(DIST_DIR)/wrk
+
+wrk: $(WRK_TARGET)
+	@echo "✅ wrk built: $(WRK_TARGET)"
+
+$(WRK_TARGET): wrk.c | $(DIST_DIR)
+	$(CC) $(CFLAGS) -o $@ wrk.c -pthread
+	@chmod +x $@
