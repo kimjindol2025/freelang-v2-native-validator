@@ -13,6 +13,7 @@ import * as path from 'path';
 import { Dashboard, DashboardStats } from './dashboard';
 import { IntentPattern } from '../phase-10/unified-pattern-database';
 import * as dashboardRoutes from '../api/routes/dashboard.routes';
+import { MessageBatcher, BatchedMessage, BatchingStats } from './message-batcher';
 
 /**
  * SSE 클라이언트 연결
@@ -34,12 +35,18 @@ interface RealtimeMessage {
 }
 
 /**
- * Phase 14 실시간 대시보드 서버 (SSE 기반)
+ * Phase 14-15 실시간 대시보드 서버 (SSE 기반 + 배칭)
  *
+ * Phase 14: SSE 프로토콜 기반 실시간 업데이트
  * - npm 의존성 없음
  * - HTTP/1.1 표준 기반
  * - 자동 재연결 지원
  * - 효율적인 변화 감지
+ *
+ * Phase 15: 메시지 배칭으로 대역폭 50% 추가 절감
+ * - 10초 배칭 윈도우
+ * - 즉시 메시지 (initial, heartbeat, error)
+ * - 배치 메시지 (stats, trends, report, movers)
  */
 export class RealtimeDashboardServer {
   private httpServer: http.Server | null = null;
@@ -52,11 +59,19 @@ export class RealtimeDashboardServer {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private lastStats: DashboardStats | null = null;
   private updateIntervalMs: number = 10000; // 10초마다 확인
+  private batcher: MessageBatcher; // Phase 15: 메시지 배칭
 
-  constructor(port: number = 8000, dashboard: Dashboard, patterns: IntentPattern[] = []) {
+  constructor(port: number = 8000, dashboard: Dashboard, patterns: IntentPattern[] = [], useBatching: boolean = true) {
     this.port = port;
     this.dashboard = dashboard;
     this.patterns = patterns;
+    this.batcher = new MessageBatcher(10000); // 10초 배치 윈도우
+
+    // 배칭 활성화 시 콜백 설정
+    if (useBatching) {
+      this.batcher.setOnImmediateMessage((msg) => this.sendBatchedMessage(msg));
+      this.batcher.setOnBatchReady((batch) => this.broadcastBatch(batch));
+    }
   }
 
   /**
@@ -270,9 +285,23 @@ export class RealtimeDashboardServer {
   }
 
   /**
-   * SSE 메시지 브로드캐스트 (모든 클라이언트)
+   * SSE 메시지 브로드캐스트 (모든 클라이언트) - Phase 15: 배칭 통합
    */
   private broadcastSSEMessage(message: RealtimeMessage): void {
+    // Phase 15: 배칭 엔진을 통해 메시지 처리
+    const batchedMsg: BatchedMessage = {
+      type: message.type as any,
+      timestamp: message.timestamp,
+      data: message.data,
+      error: message.error
+    };
+    this.batcher.enqueue(batchedMsg);
+  }
+
+  /**
+   * Phase 15: 단일 메시지 전송 (배칭을 거치지 않음)
+   */
+  private sendBatchedMessage(message: BatchedMessage): void {
     let successCount = 0;
 
     this.clients.forEach((client) => {
@@ -288,7 +317,31 @@ export class RealtimeDashboardServer {
     });
 
     if (successCount > 0) {
-      console.log(`📡 Broadcasted ${message.type} to ${successCount}/${this.clients.size} clients`);
+      console.log(`📡 Direct: ${message.type} to ${successCount}/${this.clients.size} clients`);
+    }
+  }
+
+  /**
+   * Phase 15: 배치 메시지 전송 (여러 메시지 묶음)
+   */
+  private broadcastBatch(batch: any): void {
+    let successCount = 0;
+
+    this.clients.forEach((client) => {
+      try {
+        const event = `event: batch\n`;
+        const data = `data: ${JSON.stringify(batch)}\n\n`;
+        client.res.write(event + data);
+        successCount++;
+      } catch (error) {
+        console.error(`Error sending batch to ${client.id}:`, error);
+        this.clients.delete(client.id);
+      }
+    });
+
+    if (successCount > 0) {
+      const stats = this.batcher.getStats();
+      console.log(`📦 Batch: ${batch.count} messages to ${successCount}/${this.clients.size} clients (saved: ${stats.bandwidthSaved} bytes)`);
     }
   }
 
@@ -392,6 +445,11 @@ export class RealtimeDashboardServer {
       if (this.updateInterval) clearInterval(this.updateInterval);
       if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
+      // Phase 15: 배처 정리
+      this.batcher.stop();
+      const batchingStats = this.batcher.getStats();
+      console.log(`📊 Batching stats - Messages: ${batchingStats.totalMessages}, Saved: ${batchingStats.bandwidthSaved} bytes`);
+
       // 모든 클라이언트 연결 종료
       this.clients.forEach(client => {
         try {
@@ -414,16 +472,33 @@ export class RealtimeDashboardServer {
   }
 
   /**
-   * 상태 정보
+   * Phase 15: 배칭 통계 조회
+   */
+  getBatchingStats(): BatchingStats {
+    return this.batcher.getStats();
+  }
+
+  /**
+   * 상태 정보 (Phase 15: 배칭 통계 포함)
    */
   getStatus(): object {
+    const batchingStats = this.batcher.getStats();
     return {
       port: this.port,
       clients_connected: this.clients.size,
       total_connections: this.clientIdCounter,
       update_interval_ms: this.updateIntervalMs,
       uptime_ms: process.uptime() * 1000,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      // Phase 15: 배칭 통계
+      batching: {
+        total_messages: batchingStats.totalMessages,
+        immediate_messages: batchingStats.immediateMessages,
+        batched_messages: batchingStats.batchedMessages,
+        batch_count: batchingStats.batchCount,
+        bandwidth_saved_bytes: batchingStats.bandwidthSaved,
+        compression_ratio: batchingStats.compressionRatio.toFixed(2)
+      }
     };
   }
 }
