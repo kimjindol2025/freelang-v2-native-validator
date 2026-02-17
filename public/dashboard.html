@@ -1320,11 +1320,175 @@
       loadData();
     }
 
-    // 페이지 로드 시 데이터 로드
+    /**
+     * Phase 14: Server-Sent Events (SSE) 클라이언트
+     *
+     * 실시간 업데이트로 60초 폴링 → 50ms 지연 개선
+     */
+    class RealtimeDashboardClient {
+      constructor() {
+        this.eventSource = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 1000; // 1초 시작
+        this.useSSE = true; // SSE 활성화 플래그
+      }
+
+      /**
+       * SSE 연결 시작
+       */
+      connect() {
+        if (!this.useSSE) {
+          console.log('SSE disabled, using polling fallback');
+          this.setupPollingFallback();
+          return;
+        }
+
+        try {
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'http:';
+          const url = `${window.location.origin}/api/realtime/stream`;
+
+          console.log('🔌 Connecting to SSE:', url);
+          this.eventSource = new EventSource(url);
+
+          // 초기 데이터 수신
+          this.eventSource.addEventListener('initial', (event) => {
+            console.log('📥 Initial data received');
+            this.reconnectAttempts = 0; // 성공하면 재시도 횟수 리셋
+            const message = JSON.parse(event.data);
+            this.handleInitialData(message.data);
+          });
+
+          // 통계 업데이트
+          this.eventSource.addEventListener('stats', (event) => {
+            console.log('📊 Stats update received');
+            const message = JSON.parse(event.data);
+            if (message.data) {
+              updateStats(message.data);
+              document.getElementById('last-update').textContent =
+                new Date().toLocaleString('ko-KR') + ' (실시간)';
+            }
+          });
+
+          // Heartbeat
+          this.eventSource.addEventListener('heartbeat', (event) => {
+            // 연결 유지 신호, 로깅 안 함 (노이즈 방지)
+          });
+
+          // 에러 처리
+          this.eventSource.onerror = (error) => {
+            console.error('❌ SSE error:', error);
+            this.handleSSEError();
+          };
+
+        } catch (error) {
+          console.error('SSE connection failed:', error);
+          this.setupPollingFallback();
+        }
+      }
+
+      /**
+       * 초기 데이터 처리 (전체 대시보드 업데이트)
+       */
+      handleInitialData(data) {
+        try {
+          if (data.stats) updateStats(data.stats);
+          if (data.trends) {
+            // trends 데이터로 차트 업데이트
+            updateConfidenceTrends(data.trends);
+            updateConfidenceLineChart(data.trends);
+          }
+          if (data.feedback) updateFeedback(data.feedback);
+
+          document.getElementById('last-update').textContent =
+            new Date().toLocaleString('ko-KR') + ' (실시간)';
+        } catch (error) {
+          console.error('Error processing initial data:', error);
+        }
+      }
+
+      /**
+       * SSE 에러 처리 (자동 재연결)
+       */
+      handleSSEError() {
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          const delay = Math.pow(2, this.reconnectAttempts) * this.reconnectDelay;
+          console.log(`⏳ Reconnecting in ${delay}ms... (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+
+          setTimeout(() => {
+            this.reconnectAttempts++;
+            this.connect();
+          }, delay);
+        } else {
+          console.warn('⚠️ Max reconnect attempts reached, falling back to polling');
+          this.setupPollingFallback();
+        }
+      }
+
+      /**
+       * 폴백: 60초 폴링 (SSE 실패 시)
+       */
+      setupPollingFallback() {
+        console.log('📍 Using polling fallback (60s interval)');
+        loadData();
+        window.pollingInterval = setInterval(loadData, 60000);
+      }
+
+      /**
+       * 연결 종료
+       */
+      disconnect() {
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+        if (window.pollingInterval) {
+          clearInterval(window.pollingInterval);
+        }
+      }
+
+      /**
+       * 상태 조회
+       */
+      getStatus() {
+        return {
+          connected: this.eventSource && this.eventSource.readyState === EventSource.OPEN,
+          readyState: this.eventSource ? this.eventSource.readyState : 'closed',
+          reconnectAttempts: this.reconnectAttempts,
+          maxAttempts: this.maxReconnectAttempts
+        };
+      }
+    }
+
+    // SSE 클라이언트 초기화
+    const realtimeClient = new RealtimeDashboardClient();
+
+    // 페이지 로드 시 SSE 연결
+    console.log('📌 Initializing Realtime Dashboard');
+    realtimeClient.connect();
+
+    // 초기 데이터 로드 (SSE가 준비될 때까지)
     loadData();
 
-    // 1분마다 자동 갱신
-    setInterval(loadData, 60000);
+    // 개발자 모드: 상태 확인
+    if (window.location.hash === '#debug') {
+      window.debugRealtimeStatus = () => {
+        const status = realtimeClient.getStatus();
+        console.log('🔍 Realtime Client Status:', status);
+        return status;
+      };
+      console.log('💡 Debug mode enabled. Run: debugRealtimeStatus()');
+    }
+
+    // 페이지 언로드 시 연결 종료
+    window.addEventListener('beforeunload', () => {
+      realtimeClient.disconnect();
+    });
   </script>
 </body>
 </html>
