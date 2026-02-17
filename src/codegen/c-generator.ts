@@ -6,6 +6,8 @@
  */
 
 import { HeaderProposal } from '../engine/header-generator';
+import { SIMDDetector } from './simd-detector';
+import { SIMDEmitter } from './simd-emitter';
 
 /**
  * 생성된 C 코드
@@ -89,6 +91,57 @@ export class CGenerator {
       dependencies,
       memoryProfile: this._analyzeMemory(operation, directive),
     };
+  }
+
+  /**
+   * SIMD 최적화 적용 (Phase 14 통합)
+   *
+   * @param code 원본 C 코드
+   * @param loopBody 루프 본체
+   * @param directive 최적화 지시어
+   * @returns SIMD 최적화 코드
+   */
+  static applySimdOptimization(
+    code: string,
+    loopBody: string,
+    directive: string
+  ): { code: string; optimized: boolean; speedup: number } {
+    // Phase 14: SIMD 감지 및 최적화
+    const analysis = SIMDDetector.analyzeLoop(loopBody, 'i');
+
+    if (!analysis.isVectorizable || directive !== 'speed') {
+      return { code, optimized: false, speedup: 1 };
+    }
+
+    try {
+      // SIMD 코드 생성
+      if (analysis.simdStrategy === 'none') {
+        return { code, optimized: false, speedup: 1 };
+      }
+
+      const simdCode = SIMDEmitter.generateSIMDCode(
+        loopBody,
+        'array',
+        'i',
+        analysis.simdStrategy as 'SSE' | 'AVX',
+        'f32'
+      );
+
+      // C 래퍼 생성
+      const wrapper = SIMDEmitter.generateCWrapper('vector_simd', simdCode, 'f32');
+
+      // 원본 코드 + SIMD 코드 결합
+      const optimizedCode = `// Original code\n${code}\n\n// SIMD-optimized version (Phase 14)\n${wrapper}`;
+
+      return {
+        code: optimizedCode,
+        optimized: true,
+        speedup: analysis.estimatedSpeedup,
+      };
+    } catch (error) {
+      // SIMD 생성 실패 시 원본 코드 반환
+      return { code, optimized: false, speedup: 1 };
+    }
   }
 
   /**
