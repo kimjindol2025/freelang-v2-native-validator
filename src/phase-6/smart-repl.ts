@@ -150,6 +150,148 @@ export class SmartREPL {
           return Math.sqrt(variance);
         },
 
+        // ==================== Iterator 고급 함수 ====================
+        any: (arr: any[], fn: (value: any) => boolean) => arr.some(fn),
+        all: (arr: any[], fn: (value: any) => boolean) => arr.every(fn),
+        find: (arr: any[], fn: (value: any) => boolean) => arr.find(fn),
+        findIndex: (arr: any[], fn: (value: any) => boolean) => arr.findIndex(fn),
+        enumerate: (arr: any[]) => arr.map((v, i) => [i, v]),
+        zip: (...arrs: any[][]) => {
+          const len = Math.min(...arrs.map(a => a.length));
+          return Array.from({ length: len }, (_, i) => arrs.map(a => a[i]));
+        },
+        chunk: (arr: any[], size: number) => {
+          const chunks: any[] = [];
+          for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+          }
+          return chunks;
+        },
+        partition: (arr: any[], fn: (value: any) => boolean) => {
+          const yes: any[] = [], no: any[] = [];
+          for (const item of arr) {
+            (fn(item) ? yes : no).push(item);
+          }
+          return [yes, no];
+        },
+        groupBy: (arr: any[], fn: (value: any) => any) => {
+          const groups: any = {};
+          for (const item of arr) {
+            const key = fn(item);
+            (groups[key] = groups[key] || []).push(item);
+          }
+          return groups;
+        },
+        take: (arr: any[], n: number) => arr.slice(0, n),
+        skip: (arr: any[], n: number) => arr.slice(n),
+        compact: (arr: any[]) => arr.filter(v => v != null && v !== false && v !== 0 && v !== ''),
+        contains: (arr: any[], item: any) => arr.includes(item),
+        indexOf: (arr: any[], item: any) => arr.indexOf(item),
+        lastIndexOf: (arr: any[], item: any) => arr.lastIndexOf(item),
+        product: (arr: number[]) => arr.reduce((a, b) => a * b, 1),
+        nth: (arr: any[], n: number) => arr[n],
+        distinct: (arr: any[]) => [...new Set(arr)],
+
+        // ==================== String 고급 함수 ====================
+        chars: (s: string) => s.split(''),
+        lines: (s: string) => s.split('\n'),
+        words: (s: string) => s.trim().split(/\s+/),
+        capitalize: (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(),
+        padStart: (s: string, width: number, fill: string = ' ') => s.padStart(width, fill),
+        padEnd: (s: string, width: number, fill: string = ' ') => s.padEnd(width, fill),
+        reverseStr: (s: string) => s.split('').reverse().join(''),
+        toNumber: (s: string) => Number(s),
+        toPascalCase: (s: string) => s.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
+        toSnakeCase: (s: string) => s.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, ''),
+        toCamelCase: (s: string) => s.split(/[-_\s]+/).map((w, i) => i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(''),
+        toKebabCase: (s: string) => s.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, ''),
+        truncate: (s: string, len: number, suffix: string = '...') => s.length > len ? s.slice(0, len - suffix.length) + suffix : s,
+
+        // ==================== Math 고급 함수 ====================
+        sin: (x: number) => Math.sin(x),
+        cos: (x: number) => Math.cos(x),
+        tan: (x: number) => Math.tan(x),
+        asin: (x: number) => Math.asin(x),
+        acos: (x: number) => Math.acos(x),
+        atan: (x: number) => Math.atan(x),
+        exp: (x: number) => Math.exp(x),
+        logBase: (x: number, base: number = Math.E) => Math.log(x) / Math.log(base),
+        log10: (x: number) => Math.log10(x),
+        log2: (x: number) => Math.log2(x),
+        ln: (x: number) => Math.log(x),
+        random: (min: number = 0, max: number = 1) => Math.random() * (max - min) + min,
+        randomInt: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min,
+        gcd: (a: number, b: number): number => b === 0 ? a : (exports.gcd || module.exports?.gcd)(b, a % b),
+        lcm: (a: number, b: number) => Math.abs(a * b) / ((exports.gcd || module.exports?.gcd)(a, b) || 1),
+        clamp: (x: number, min: number, max: number) => Math.max(min, Math.min(max, x)),
+
+        // ==================== Object 고급 함수 ====================
+        assign: (...objs: any[]) => Object.assign({}, ...objs),
+        isEmpty: (obj: any) => {
+          if (Array.isArray(obj)) return obj.length === 0;
+          if (typeof obj === 'object' && obj !== null) return Object.keys(obj).length === 0;
+          if (typeof obj === 'string') return obj.length === 0;
+          return !obj;
+        },
+        isEqual: (a: any, b: any): boolean => {
+          if (a === b) return true;
+          if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+          const keysA = Object.keys(a), keysB = Object.keys(b);
+          if (keysA.length !== keysB.length) return false;
+          return keysA.every(key => (exports.isEqual || module.exports?.isEqual)(a[key], b[key]));
+        },
+        clone: (obj: any) => Array.isArray(obj) ? [...obj] : { ...obj },
+        deepClone: (obj: any): any => {
+          if (obj === null || typeof obj !== 'object') return obj;
+          if (Array.isArray(obj)) return obj.map((v: any) => (exports.deepClone || module.exports?.deepClone)(v));
+          const cloned: any = {};
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              cloned[key] = (exports.deepClone || module.exports?.deepClone)(obj[key]);
+            }
+          }
+          return cloned;
+        },
+        fromEntries: (entries: any[]) => {
+          const obj: any = {};
+          for (const [k, v] of entries) obj[k] = v;
+          return obj;
+        },
+        pick: (obj: any, keys: string[]) => {
+          const result: any = {};
+          for (const key of keys) {
+            if (key in obj) result[key] = obj[key];
+          }
+          return result;
+        },
+        omit: (obj: any, keys: string[]) => {
+          const result: any = {};
+          for (const key in obj) {
+            if (!keys.includes(key)) result[key] = obj[key];
+          }
+          return result;
+        },
+        invert: (obj: any) => {
+          const result: any = {};
+          for (const key in obj) result[obj[key]] = key;
+          return result;
+        },
+
+        // ==================== 함수형 프로그래밍 ====================
+        pipe: (...fns: any[]) => (value: any) => fns.reduce((acc, fn) => fn(acc), value),
+        compose: (...fns: any[]) => (value: any) => fns.reduceRight((acc, fn) => fn(acc), value),
+        partial: (fn: Function, ...args: any[]) => (...moreArgs: any[]) => fn(...args, ...moreArgs),
+        once: (fn: Function) => {
+          let called = false, result: any;
+          return (...args: any[]) => {
+            if (!called) {
+              called = true;
+              result = fn(...args);
+            }
+            return result;
+          };
+        },
+
         // ==================== I/O 함수 ====================
         print: (...args: any[]) => {
           console.log(...args);
