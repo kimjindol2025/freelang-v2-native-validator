@@ -1,7 +1,7 @@
 {
-  "name": "@freelang/core",
+  "name": "@freelang/runtime",
   "version": "2.1.0",
-  "description": "FreeLang v2.1.0: AI-First Programming Language - Self-Correcting + Intent-Driven + Production Ready",
+  "description": "Production-ready async runtime with self-healing and chaos engineering validation",
   "main": "dist/cli/index.js",
   "types": "dist/cli/index.d.ts",
   "scripts": {
@@ -11,8 +11,7 @@
     "lint": "eslint src --ext .ts",
     "start": "node dist/cli/index.js",
     "dev": "ts-node src/cli/index.ts",
-    "clean": "rm -rf dist",
-    "prepare": "npm run build"
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "ai",
