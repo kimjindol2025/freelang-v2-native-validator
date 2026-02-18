@@ -57,7 +57,11 @@ import {
   WhileStatement,
   ReturnStatement,
   BlockStatement,
-  Parameter  // Phase 3 Step 3: Lambda parameters
+  Parameter,  // Phase 3 Step 3: Lambda parameters
+  ImportStatement,  // Phase 4 Step 2: Module System
+  ImportSpecifier,  // Phase 4 Step 2: Module System
+  ExportStatement,  // Phase 4 Step 2: Module System
+  FunctionStatement  // Phase 4 Step 2: Function exports
 } from './ast';
 
 /**
@@ -909,6 +913,16 @@ export class Parser {
    *   - 표현식 문장
    */
   public parseStatement(): Statement {
+    // Phase 4 Step 2: import 문
+    if (this.check(TokenType.IMPORT)) {
+      return this.parseImportStatement();
+    }
+
+    // Phase 4 Step 2: export 문
+    if (this.check(TokenType.EXPORT)) {
+      return this.parseExportStatement();
+    }
+
     // let 변수 선언
     if (this.check(TokenType.LET)) {
       return this.parseVariableDeclaration();
@@ -1246,6 +1260,189 @@ export class Parser {
     }
 
     return type;
+  }
+
+  /**
+   * Phase 4 Step 2: Import 문 파싱
+   *
+   * 형식:
+   *   import { add, multiply } from "./math.fl"
+   *   import { add as sum } from "./math.fl"
+   *   import * as math from "./math.fl"
+   *   import "./config.fl"
+   */
+  private parseImportStatement(): ImportStatement {
+    this.expect(TokenType.IMPORT, 'Expected "import"');
+
+    let imports: ImportSpecifier[] = [];
+    let isNamespace = false;
+    let namespace: string | undefined;
+
+    // import * as name 형식
+    if (this.check(TokenType.STAR)) {
+      this.advance();  // * 소비
+      this.expect(TokenType.AS, 'Expected "as" after "*"');
+      namespace = this.expect(TokenType.IDENT, 'Expected namespace name').value;
+      isNamespace = true;
+    }
+    // import { name1, name2, ... } 형식
+    else if (this.check(TokenType.LBRACE)) {
+      this.advance();  // { 소비
+
+      while (!this.check(TokenType.RBRACE) && !this.check(TokenType.EOF)) {
+        // 임포트할 이름
+        const nameToken = this.expect(TokenType.IDENT, 'Expected import name');
+        const name = nameToken.value;
+
+        let alias: string | undefined;
+
+        // as로 별칭 제공
+        if (this.check(TokenType.AS)) {
+          this.advance();
+          const aliasToken = this.expect(TokenType.IDENT, 'Expected alias name');
+          alias = aliasToken.value;
+        }
+
+        imports.push({ name, alias });
+
+        // 다음 항목이 있으면 쉼표 필요
+        if (!this.check(TokenType.RBRACE)) {
+          this.expect(TokenType.COMMA, 'Expected "," between imports');
+        }
+      }
+
+      this.expect(TokenType.RBRACE, 'Expected "}"');
+    }
+
+    // from 키워드와 모듈 경로
+    this.expect(TokenType.FROM, 'Expected "from"');
+    const fromToken = this.expect(TokenType.STRING, 'Expected module path');
+    const from = fromToken.value;
+
+    return {
+      type: 'import',
+      imports,
+      from,
+      isNamespace,
+      namespace
+    };
+  }
+
+  /**
+   * Phase 4 Step 2: Export 문 파싱
+   *
+   * 형식:
+   *   export fn add(a: number, b: number) -> number { ... }
+   *   export let PI = 3.14159
+   *   export let VERSION = "1.0"
+   */
+  private parseExportStatement(): ExportStatement {
+    this.expect(TokenType.EXPORT, 'Expected "export"');
+
+    let declaration: FunctionStatement | VariableDeclaration;
+
+    // export fn ... 형식
+    if (this.check(TokenType.FN)) {
+      this.advance();  // fn 소비
+
+      // 함수 이름
+      const nameToken = this.expect(TokenType.IDENT, 'Expected function name');
+      const fnName = nameToken.value;
+
+      // 매개변수 파싱
+      this.expect(TokenType.LPAREN, 'Expected "("');
+      const params = this.parseParameters();
+      this.expect(TokenType.RPAREN, 'Expected ")"');
+
+      // 반환 타입 (선택적)
+      let returnType: string | undefined;
+      if (this.check(TokenType.ARROW)) {
+        this.advance();
+        returnType = this.parseType();
+      }
+
+      // 함수 본체
+      const body = this.parseBlockStatement();
+
+      declaration = {
+        type: 'function',
+        name: fnName,
+        params,
+        returnType,
+        body
+      };
+    }
+    // export let ... 형식
+    else if (this.check(TokenType.LET)) {
+      this.advance();  // let 소비
+
+      // 변수 이름
+      const nameToken = this.expect(TokenType.IDENT, 'Expected variable name');
+      const varName = nameToken.value;
+
+      let varType: string | undefined;
+      let value: Expression | undefined;
+
+      // 타입 표기법 (선택적)
+      if (this.check(TokenType.COLON)) {
+        this.advance();
+        varType = this.parseType();
+      }
+
+      // 초기값 (선택적)
+      if (this.check(TokenType.ASSIGN)) {
+        this.advance();
+        value = this.parseExpression();
+      }
+
+      declaration = {
+        type: 'variable',
+        name: varName,
+        varType,
+        value
+      };
+    } else {
+      throw new ParseError(
+        this.current().line,
+        this.current().column,
+        'Expected function or variable declaration after "export"'
+      );
+    }
+
+    return {
+      type: 'export',
+      declaration
+    };
+  }
+
+  /**
+   * Phase 3: 매개변수 파싱
+   * 형식: (x, y: number, z: string)
+   */
+  private parseParameters(): Parameter[] {
+    const params: Parameter[] = [];
+
+    while (!this.check(TokenType.RPAREN) && !this.check(TokenType.EOF)) {
+      const nameToken = this.expect(TokenType.IDENT, 'Expected parameter name');
+      const name = nameToken.value;
+
+      let paramType: string | undefined;
+
+      // 타입 표기법 (선택적)
+      if (this.check(TokenType.COLON)) {
+        this.advance();
+        paramType = this.parseType();
+      }
+
+      params.push({ name, paramType });
+
+      // 다음 매개변수가 있으면 쉼표 필요
+      if (!this.check(TokenType.RPAREN)) {
+        this.expect(TokenType.COMMA, 'Expected "," between parameters');
+      }
+    }
+
+    return params;
   }
 }
 
