@@ -34,7 +34,5 @@ export {
   FFICallResult,
 } from './ffi-integration';
 
-// Re-export default for convenience
-export { default as FFIIntegration } from './ffi-integration';
-export { default as FFIBindingGenerator } from './c-bindings/ffi-binding-generator';
-export { default as NativeLibraryLoader } from './native-loader/native-library-loader';
+// Main exports (FFIIntegration is primary entry point)
+export { FFIIntegration as default } from './ffi-integration';

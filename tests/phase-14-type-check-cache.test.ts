@@ -80,43 +80,43 @@ describe('Phase 14-2: Type Check Cache', () => {
 
   describe('LRU Eviction', () => {
     test('should evict when cache is full', () => {
-      const smallCache = new TypeCheckCache(5);
+      const smallCache = new TypeCheckCache(20); // Actual size will be min(20, 4096) = 20
 
-      // Fill cache
-      for (let i = 0; i < 5; i++) {
+      // Fill cache (up to 20)
+      for (let i = 0; i < 20; i++) {
         smallCache.set(`func${i}`, ['number'], ['number'], { compatible: true, message: "success" });
       }
 
       const stats = smallCache.getStats();
-      expect(stats.size).toBe(5);
+      expect(stats.size).toBe(20);
       expect(stats.evictionCount).toBe(0);
 
-      // Add one more - should evict
+      // Add one more - should evict one entry
       smallCache.set('func_new', ['string'], ['string'], { compatible: false, message: "failure" });
       const newStats = smallCache.getStats();
-      expect(newStats.size).toBe(5); // Still 5 (evicted one)
+      expect(newStats.size).toBe(20); // Still 20 (evicted one)
       expect(newStats.evictionCount).toBe(1);
     });
 
     test('should evict least recently used entry', () => {
-      const smallCache = new TypeCheckCache(3);
+      const smallCache = new TypeCheckCache(16);
 
-      // Add 3 entries
-      smallCache.set('func1', ['number'], ['number'], { compatible: true, message: "success" });
-      smallCache.set('func2', ['number'], ['number'], { compatible: true, message: "success" });
-      smallCache.set('func3', ['string'], ['string'], { compatible: true, message: "success" });
+      // Add 16 entries (filling cache)
+      for (let i = 0; i < 16; i++) {
+        smallCache.set(`func${i}`, ['number'], ['number'], { compatible: true, message: "success" });
+      }
 
-      // Access func1 to make it recently used
-      smallCache.get('func1', ['number'], ['number']);
+      // Access func0 to make it recently used
+      smallCache.get('func0', ['number'], ['number']);
 
-      // Add new entry - should evict func2 (least recently used)
-      smallCache.set('func4', ['bool'], ['bool'], { compatible: true, message: "success" });
+      // Add new entry - should evict func1 (least recently used, since func0 was just accessed)
+      smallCache.set('func_new', ['bool'], ['bool'], { compatible: true, message: "success" });
 
-      // func1 should still be there
-      expect(smallCache.get('func1', ['number'], ['number'])).not.toBeNull();
+      // func0 should still be there
+      expect(smallCache.get('func0', ['number'], ['number'])).not.toBeNull();
 
-      // func2 should be evicted
-      expect(smallCache.get('func2', ['number'], ['number'])).toBeNull();
+      // func1 should be evicted (it was the oldest after func0 was accessed)
+      expect(smallCache.get('func1', ['number'], ['number'])).toBeNull();
     });
   });
 
@@ -246,16 +246,16 @@ describe('Phase 14-2: Type Check Cache', () => {
 
   describe('Utilization Metrics', () => {
     test('should report cache utilization', () => {
-      const smallCache = new TypeCheckCache(10);
+      const smallCache = new TypeCheckCache(32); // Will be 32 (since min is 16, max is 4096)
 
-      // Add 5 entries
-      for (let i = 0; i < 5; i++) {
+      // Add 16 entries
+      for (let i = 0; i < 16; i++) {
         smallCache.set(`func${i}`, ['number'], ['number'], { compatible: true, message: "success" });
       }
 
       const util = smallCache.getUtilization();
-      expect(util.used).toBe(5);
-      expect(util.available).toBe(5);
+      expect(util.used).toBe(16);
+      expect(util.available).toBe(16);
       expect(util.percentage).toBe(50);
     });
 

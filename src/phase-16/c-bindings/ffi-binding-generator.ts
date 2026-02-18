@@ -314,7 +314,7 @@ export class FFIBindingGenerator {
    * Convert CType to string representation
    */
   private ctypeToString(c_type: CType): string {
-    let result = c_type.base;
+    let result: string = c_type.base;
     if (c_type.is_const) result = `const ${result}`;
     if (c_type.is_pointer) result = `${result}*`;
     return result;
