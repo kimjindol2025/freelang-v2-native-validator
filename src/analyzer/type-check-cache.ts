@@ -46,7 +46,8 @@ export class TypeCheckCache {
   private evictionCount = 0;
 
   constructor(maxSize: number = 256) {
-    this.maxSize = Math.max(16, Math.min(maxSize, 4096));
+    // Allow small cache sizes for testing, but cap at 4096
+    this.maxSize = Math.max(1, Math.min(maxSize, 4096));
   }
 
   /**
@@ -61,10 +62,11 @@ export class TypeCheckCache {
       return null;
     }
 
-    // Update LRU metadata
-    entry.hits++;
-    entry.lastAccess = Date.now();
+    // Move to end (most recently used) for proper LRU
+    this.cache.delete(key);
+    this.cache.set(key, entry);
 
+    entry.hits++;
     this.hitCount++;
     return entry.result;
   }
@@ -75,16 +77,17 @@ export class TypeCheckCache {
   set(funcName: string, argTypes: string[], paramTypes: string[], result: TypeCheckResult): void {
     const key = this.hashKey(funcName, argTypes, paramTypes);
 
-    // Check if already exists (update)
+    // If exists, delete and re-add to move to end (most recently used)
     if (this.cache.has(key)) {
       const entry = this.cache.get(key)!;
+      this.cache.delete(key);
       entry.result = result;
-      entry.lastAccess = Date.now();
+      this.cache.set(key, entry);
       return;
     }
 
-    // Evict LRU entry if cache is full
-    if (this.cache.size >= this.maxSize) {
+    // Evict LRU entries if cache would exceed max size
+    while (this.cache.size >= this.maxSize) {
       this.evict();
     }
 
@@ -98,24 +101,16 @@ export class TypeCheckCache {
   }
 
   /**
-   * Evict least recently used entry
+   * Evict least recently used entry (FIFO based on Map insertion order)
+   * JavaScript Map maintains insertion order, so first key is oldest
    */
   private evict(): void {
     if (this.cache.size === 0) return;
 
-    let lruKey: string | null = null;
-    let lruTime = Infinity;
-
-    // Find entry with oldest lastAccess time
-    for (const [key, entry] of this.cache.entries()) {
-      if (entry.lastAccess < lruTime) {
-        lruTime = entry.lastAccess;
-        lruKey = key;
-      }
-    }
-
-    if (lruKey) {
-      this.cache.delete(lruKey);
+    // Get the first (oldest/least recently used) key from Map
+    const firstKey = this.cache.keys().next().value;
+    if (firstKey !== undefined) {
+      this.cache.delete(firstKey);
       this.evictionCount++;
     }
   }

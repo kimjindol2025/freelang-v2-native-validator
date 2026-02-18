@@ -25,9 +25,11 @@ describe('Phase 14: Realtime Dashboard Integration', () => {
 
   describe('SSE Server Connection', () => {
     let localServer: RealtimeDashboardServer;
-    const PORT = 18001;
+    let PORT: number;
 
     beforeAll(async () => {
+      // Use random port to avoid conflicts (30000-40000 range)
+      PORT = Math.floor(Math.random() * 10000) + 30000;
       localServer = new RealtimeDashboardServer(PORT, dashboard, []);
       await localServer.start();
     });
