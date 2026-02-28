@@ -24,6 +24,24 @@ export * as set from './set';
 export * as map from './map';
 export * as encoding from './encoding';
 
+// Re-export Round 1 modules (Phase 3 - Simple Utilities)
+export * as uuid from './uuid';
+export * as sys from './sys';
+export * as fetch from './fetch';
+export * as kv from './kv';
+export * as temp from './temp';
+export * as bench from './bench';
+export * as ansicolor from './ansicolor';
+export * as stats from './stats';
+export * as diff from './diff';
+export * as struct from './struct';
+
+// Re-export Round 2 modules (Phase 4 - Data Formats)
+export * as xml from './xml';
+export * as csv from './csv';
+export * as yaml from './yaml';
+export * as otp from './otp';
+
 /**
  * Standard Library namespace
  *
@@ -61,6 +79,20 @@ import * as dateModule from './date';
 import * as setModule from './set';
 import * as mapModule from './map';
 import * as encodingModule from './encoding';
+import * as uuidModule from './uuid';
+import * as sysModule from './sys';
+import * as fetchModule from './fetch';
+import * as kvModule from './kv';
+import * as tempModule from './temp';
+import * as benchModule from './bench';
+import * as ansicolorModule from './ansicolor';
+import * as statsModule from './stats';
+import * as diffModule from './diff';
+import * as structModule from './struct';
+import * as xmlModule from './xml';
+import * as csvModule from './csv';
+import * as yamlModule from './yaml';
+import * as otpModule from './otp';
 
 const std = {
   // Phase 1 modules
@@ -75,7 +107,23 @@ const std = {
   date: dateModule,
   set: setModule,
   map: mapModule,
-  encoding: encodingModule
+  encoding: encodingModule,
+  // Phase 3 modules (Round 1 - Simple Utilities)
+  uuid: uuidModule,
+  sys: sysModule,
+  fetch: fetchModule,
+  kv: kvModule,
+  temp: tempModule,
+  bench: benchModule,
+  ansicolor: ansicolorModule,
+  stats: statsModule,
+  diff: diffModule,
+  struct: structModule,
+  // Phase 4 modules (Round 2 - Data Formats)
+  xml: xmlModule,
+  csv: csvModule,
+  yaml: yamlModule,
+  otp: otpModule
 };
 
 export default std;
