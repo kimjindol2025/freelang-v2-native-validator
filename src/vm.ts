@@ -512,27 +512,30 @@ export class VM {
             this.vars.set(fn.params[i], args[i]);
           }
 
-          // Execute function body (generate IR and run)
+          // Execute function body - Process statements individually
+          // This ensures proper variable scoping for each statement
           const gen = new IRGenerator();
+          let returnValue: any = undefined;
 
-          // Ensure fn.body is a proper BlockStatement or node
-          let bodyNode = fn.body;
-          if (!bodyNode) {
+          if (!fn.body) {
             throw new Error('function_body_undefined:' + funcName);
           }
 
-          // If fn.body is a BlockStatement-like object with statements array,
-          // ensure it's properly structured for IR generation
+          // Execute entire function body as a block
+          // Treat fn.body as a block-type node and process all statements together
+          const bodyNode = fn.body || { type: 'block', statements: [] };
+
+          // Ensure it has type 'block' for proper IR generation
           if (!bodyNode.type) {
-            // Assume it's a block-like object, add type if missing
             bodyNode.type = 'block';
           }
 
-          // Generate IR from the function body node
+          // Generate IR for the entire block (all statements at once)
           const bodyIR = gen.generateIR(bodyNode);
 
+          // Execute the body IR
           const bodyResult = this.runProgram(bodyIR);
-          const returnValue = bodyResult.value as (number | Iterator | string | undefined);
+          returnValue = bodyResult.value;
 
           // Restore caller's variables
           this.vars = savedVars;
