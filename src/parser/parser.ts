@@ -539,7 +539,7 @@ export class Parser {
    * 곱셈/나눗셈/나머지 파싱 (*, /, %)
    */
   private parseMultiplicative(): Expression {
-    let left = this.parsePrimaryExpression();
+    let left = this.parsePostfix();
 
     while (
       this.check(TokenType.STAR) ||
@@ -553,7 +553,7 @@ export class Parser {
       else if (this.check(TokenType.PERCENT)) operator = '%';
 
       this.advance();
-      const right = this.parsePrimaryExpression();
+      const right = this.parsePostfix();
 
       left = {
         type: 'binary',
@@ -561,6 +561,39 @@ export class Parser {
         left,
         right
       } as BinaryOpExpression;
+    }
+
+    return left;
+  }
+
+  /**
+   * Postfix 연산 파싱: . (member access) 및 [] (array indexing)
+   */
+  private parsePostfix(): Expression {
+    let left = this.parsePrimaryExpression();
+
+    // Member access (obj.prop) and array indexing (arr[index])
+    while (this.check(TokenType.DOT) || this.check(TokenType.LBRACKET)) {
+      if (this.check(TokenType.DOT)) {
+        this.advance(); // consume .
+        const propName = this.expect(TokenType.IDENT, 'Expected property name').value;
+        left = {
+          type: 'member',
+          object: left,
+          property: { type: 'identifier', name: propName },
+          computed: false
+        } as any;
+      } else if (this.check(TokenType.LBRACKET)) {
+        this.advance(); // consume [
+        const index = this.parseExpression();
+        this.expect(TokenType.RBRACKET, 'Expected "]"');
+        left = {
+          type: 'member',
+          object: left,
+          property: index,
+          computed: true
+        } as any;
+      }
     }
 
     return left;

@@ -12,7 +12,7 @@ import { NativeFunctionRegistry, NativeFunctionConfig } from './vm/native-functi
 import { IRGenerator } from './codegen/ir-generator';
 import { registerStdlibFunctions } from './stdlib-builtins';
 import { registerTCPFunctions } from './stdlib/net/tcp-native';
-import { trackFunctionCall, isHotFunction } from './phase-jit/hotspot-detector';
+// import { trackFunctionCall, isHotFunction } from './phase-jit/hotspot-detector';
 
 const MAX_CYCLES = 100_000;
 const MAX_STACK  = 10_000;
@@ -300,8 +300,17 @@ export class VM {
       }
 
       case Op.ARR_LEN: {
-        const arr = this.vars.get(arg as string);
-        if (!Array.isArray(arr)) throw new Error('not_array:' + arg);
+        let arr;
+        if (arg) {
+          // Variable-based: arr = this.vars.get(arg)
+          arr = this.vars.get(arg as string);
+          if (!Array.isArray(arr)) throw new Error('not_array:' + arg);
+        } else {
+          // Stack-based: pop array from stack
+          this.need(1);
+          arr = this.stack.pop();
+          if (!Array.isArray(arr)) throw new Error('not_array:stack_array');
+        }
         this.guardStack();
         this.stack.push(arr.length);
         this.pc++;
@@ -442,7 +451,7 @@ export class VM {
           }
           this.functionRegistry!.trackCall(funcName);
           // Phase 4: Track function call for JIT hotspot detection
-          trackFunctionCall(funcName);
+          // trackFunctionCall(funcName);
           this.pc++;
         }
         // Phase 3 FFI: Try native function (C FFI)
