@@ -1542,8 +1542,8 @@ export function registerStdlibFunctions(registry: NativeFunctionRegistry): void 
     name: 'defer',
     module: 'async',
     executor: (args) => {
-      const fn = args[0] as Function;
-      setImmediate(fn);
+      const fn = args[0] as any;
+      setImmediate(() => fn());
       return null;
     }
   });
