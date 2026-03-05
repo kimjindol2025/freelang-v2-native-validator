@@ -1,0 +1,10 @@
+/**
+ * tokenize 직접 테스트
+ */
+
+println("Test: Direct tokenize call")
+
+let result = tokenize("42")
+println("Result received")
+println("Result: " + str(result))
+
