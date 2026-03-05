@@ -11,7 +11,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_format',
     module: 'string',
-    description: 'Format string with placeholders {0}, {1}, etc',
     executor: (args) => {
       const template = String(args[0]);
       const values = args.slice(1);
@@ -24,7 +23,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_template',
     module: 'string',
-    description: 'Template string with named placeholders {name}',
     executor: (args) => {
       const template = String(args[0]);
       const obj = args[1] as Record<string, any>;
@@ -37,7 +35,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_interpolate',
     module: 'string',
-    description: 'String interpolation with expressions',
     executor: (args) => {
       const str = String(args[0]);
       const context = args[1] as Record<string, any>;
@@ -54,7 +51,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_escape',
     module: 'string',
-    description: 'Escape special characters',
     executor: (args) => {
       const str = String(args[0]);
       const type = String(args[1] ?? 'html');
@@ -83,7 +79,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_unescape',
     module: 'string',
-    description: 'Unescape escaped characters',
     executor: (args) => {
       const str = String(args[0]);
       const type = String(args[1] ?? 'html');
@@ -111,7 +106,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_normalize',
     module: 'string',
-    description: 'Normalize Unicode string (NFC, NFD, NFKC, NFKD)',
     executor: (args) => {
       const str = String(args[0]);
       const form = String(args[1] ?? 'NFC') as any;
@@ -122,7 +116,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_slug',
     module: 'string',
-    description: 'Convert to URL-friendly slug',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -137,7 +130,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_camel_case',
     module: 'string',
-    description: 'Convert to camelCase',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -151,7 +143,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_pascal_case',
     module: 'string',
-    description: 'Convert to PascalCase',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -165,7 +156,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_snake_case',
     module: 'string',
-    description: 'Convert to snake_case',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -178,7 +168,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_kebab_case',
     module: 'string',
-    description: 'Convert to kebab-case',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -191,7 +180,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_constant_case',
     module: 'string',
-    description: 'Convert to CONSTANT_CASE',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -204,7 +192,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_title_case',
     module: 'string',
-    description: 'Convert to Title Case',
     executor: (args) => {
       const str = String(args[0]);
       return str.replace(/\b\w/g, c => c.toUpperCase());
@@ -214,7 +201,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_capitalize',
     module: 'string',
-    description: 'Capitalize first character',
     executor: (args) => {
       const str = String(args[0]);
       return str.charAt(0).toUpperCase() + str.slice(1);
@@ -224,7 +210,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_uncapitalize',
     module: 'string',
-    description: 'Uncapitalize first character',
     executor: (args) => {
       const str = String(args[0]);
       return str.charAt(0).toLowerCase() + str.slice(1);
@@ -234,7 +219,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_ascii',
     module: 'string',
-    description: 'Check if string contains only ASCII',
     executor: (args) => {
       const str = String(args[0]);
       return /^[\x00-\x7F]*$/.test(str);
@@ -244,7 +228,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_alpha',
     module: 'string',
-    description: 'Check if string contains only alphabetic characters',
     executor: (args) => {
       const str = String(args[0]);
       return /^[a-zA-Z]+$/.test(str);
@@ -254,7 +237,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_digit',
     module: 'string',
-    description: 'Check if string contains only digits',
     executor: (args) => {
       const str = String(args[0]);
       return /^\d+$/.test(str);
@@ -264,7 +246,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_alnum',
     module: 'string',
-    description: 'Check if string contains only alphanumeric characters',
     executor: (args) => {
       const str = String(args[0]);
       return /^[a-zA-Z0-9]+$/.test(str);
@@ -274,7 +255,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_space',
     module: 'string',
-    description: 'Check if string contains only whitespace',
     executor: (args) => {
       const str = String(args[0]);
       return /^\s+$/.test(str);
@@ -284,7 +264,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_upper',
     module: 'string',
-    description: 'Check if string is uppercase',
     executor: (args) => {
       const str = String(args[0]);
       return str === str.toUpperCase() && /[a-z]/i.test(str);
@@ -294,7 +273,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_lower',
     module: 'string',
-    description: 'Check if string is lowercase',
     executor: (args) => {
       const str = String(args[0]);
       return str === str.toLowerCase() && /[a-z]/i.test(str);
@@ -304,7 +282,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_email',
     module: 'string',
-    description: 'Check if string is valid email',
     executor: (args) => {
       const str = String(args[0]);
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -314,7 +291,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_url',
     module: 'string',
-    description: 'Check if string is valid URL',
     executor: (args) => {
       const str = String(args[0]);
       try {
@@ -329,7 +305,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_uuid',
     module: 'string',
-    description: 'Check if string is valid UUID',
     executor: (args) => {
       const str = String(args[0]);
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -339,7 +314,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_ip',
     module: 'string',
-    description: 'Check if string is valid IPv4',
     executor: (args) => {
       const str = String(args[0]);
       return /^(\d{1,3}\.){3}\d{1,3}$/.test(str) &&
@@ -350,7 +324,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_is_ipv6',
     module: 'string',
-    description: 'Check if string is valid IPv6',
     executor: (args) => {
       const str = String(args[0]);
       return /^([\da-f]{1,4}:){7}[\da-f]{1,4}$|^::([\da-f]{1,4}:){0,6}[\da-f]{1,4}$/i.test(str);
@@ -360,7 +333,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_count',
     module: 'string',
-    description: 'Count occurrences of substring',
     executor: (args) => {
       const str = String(args[0]);
       const needle = String(args[1]);
@@ -372,7 +344,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_count_occurrences',
     module: 'string',
-    description: 'Count occurrences with regex',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -390,7 +361,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_extract',
     module: 'string',
-    description: 'Extract substring using pattern',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -406,7 +376,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_between',
     module: 'string',
-    description: 'Extract substring between two strings',
     executor: (args) => {
       const str = String(args[0]);
       const start = String(args[1]);
@@ -423,7 +392,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_before',
     module: 'string',
-    description: 'Get substring before first occurrence',
     executor: (args) => {
       const str = String(args[0]);
       const delimiter = String(args[1]);
@@ -435,7 +403,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_after',
     module: 'string',
-    description: 'Get substring after first occurrence',
     executor: (args) => {
       const str = String(args[0]);
       const delimiter = String(args[1]);
@@ -447,7 +414,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_char_at',
     module: 'string',
-    description: 'Get character at index',
     executor: (args) => {
       const str = String(args[0]);
       const index = Math.floor(Number(args[1]));
@@ -458,7 +424,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'str_code_at',
     module: 'string',
-    description: 'Get character code at index',
     executor: (args) => {
       const str = String(args[0]);
       const index = Math.floor(Number(args[1]));
@@ -471,7 +436,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_flags',
     module: 'regex',
-    description: 'Get/set regex flags',
     executor: (args) => {
       const pattern = String(args[0]);
       const flags = String(args[1] ?? '');
@@ -487,7 +451,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_named_groups',
     module: 'regex',
-    description: 'Extract named groups from match',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -505,7 +468,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_global',
     module: 'regex',
-    description: 'Find all matches globally',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -521,7 +483,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_multiline',
     module: 'regex',
-    description: 'Match with multiline mode',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -537,7 +498,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_sticky',
     module: 'regex',
-    description: 'Match with sticky flag',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -553,7 +513,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_unicode',
     module: 'regex',
-    description: 'Match with Unicode support',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -569,7 +528,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_match_all',
     module: 'regex',
-    description: 'Get all match details',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -594,7 +552,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_index',
     module: 'regex',
-    description: 'Find index of pattern',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -610,7 +567,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_input',
     module: 'regex',
-    description: 'Get original input string from match',
     executor: (args) => {
       const str = String(args[0]);
       return str;
@@ -620,7 +576,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_groups',
     module: 'regex',
-    description: 'Extract capture groups',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -636,7 +591,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_replace_all',
     module: 'regex',
-    description: 'Replace all occurrences',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -653,7 +607,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_replace_fn',
     module: 'regex',
-    description: 'Replace using function',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -670,7 +623,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_split_with_sep',
     module: 'regex',
-    description: 'Split keeping separators',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -685,7 +637,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_is_valid',
     module: 'regex',
-    description: 'Check if pattern is valid regex',
     executor: (args) => {
       const pattern = String(args[0]);
       try {
@@ -700,7 +651,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_escape',
     module: 'regex',
-    description: 'Escape string for regex',
     executor: (args) => {
       const str = String(args[0]);
       return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -710,7 +660,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_anchor',
     module: 'regex',
-    description: 'Create regex with anchors',
     executor: (args) => {
       const pattern = String(args[0]);
       const anchor = String(args[1] ?? 'both');
@@ -723,7 +672,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_word_boundary',
     module: 'regex',
-    description: 'Create regex with word boundaries',
     executor: (args) => {
       const pattern = String(args[0]);
       return `\\b${pattern}\\b`;
@@ -733,7 +681,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_lookahead',
     module: 'regex',
-    description: 'Create positive lookahead pattern',
     executor: (args) => {
       const pattern = String(args[0]);
       return `(?=${pattern})`;
@@ -743,7 +690,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_lookbehind',
     module: 'regex',
-    description: 'Create positive lookbehind pattern',
     executor: (args) => {
       const pattern = String(args[0]);
       return `(?<=${pattern})`;
@@ -753,7 +699,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_positive_lookahead',
     module: 'regex',
-    description: 'Positive lookahead assertion',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -769,7 +714,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_negative_lookahead',
     module: 'regex',
-    description: 'Negative lookahead assertion',
     executor: (args) => {
       const str = String(args[0]);
       const pattern = String(args[1]);
@@ -785,7 +729,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_quantifier',
     module: 'regex',
-    description: 'Create pattern with quantifiers',
     executor: (args) => {
       const pattern = String(args[0]);
       const min = Math.floor(Number(args[1]));
@@ -799,7 +742,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_alternation',
     module: 'regex',
-    description: 'Create alternation pattern',
     executor: (args) => {
       const patterns = args.map(a => String(a));
       return `(${patterns.join('|')})`;
@@ -809,7 +751,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_char_class',
     module: 'regex',
-    description: 'Create character class pattern',
     executor: (args) => {
       const chars = String(args[0]);
       const negate = Boolean(args[1]);
@@ -820,7 +761,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'regex_compile',
     module: 'regex',
-    description: 'Compile and return regex object',
     executor: (args) => {
       const pattern = String(args[0]);
       const flags = String(args[1] ?? '');
@@ -837,7 +777,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_number',
     module: 'i18n',
-    description: 'Format number for locale',
     executor: (args) => {
       const num = Number(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -852,7 +791,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_currency',
     module: 'i18n',
-    description: 'Format currency for locale',
     executor: (args) => {
       const num = Number(args[0]);
       const currency = String(args[1] ?? 'USD');
@@ -868,7 +806,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_date',
     module: 'i18n',
-    description: 'Format date for locale',
     executor: (args) => {
       const date = new Date(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -883,7 +820,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_time',
     module: 'i18n',
-    description: 'Format time for locale',
     executor: (args) => {
       const date = new Date(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -902,7 +838,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_datetime',
     module: 'i18n',
-    description: 'Format date and time for locale',
     executor: (args) => {
       const date = new Date(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -924,7 +859,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_relative',
     module: 'i18n',
-    description: 'Format relative time',
     executor: (args) => {
       const date = new Date(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -945,7 +879,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_format_unit',
     module: 'i18n',
-    description: 'Format unit for locale',
     executor: (args) => {
       const value = Number(args[0]);
       const unit = String(args[1] ?? 'kilometer');
@@ -964,7 +897,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_plural',
     module: 'i18n',
-    description: 'Get plural rule for value',
     executor: (args) => {
       const num = Number(args[0]);
       const locale = String(args[1] ?? 'en-US');
@@ -980,7 +912,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_ordinal',
     module: 'i18n',
-    description: 'Format ordinal number',
     executor: (args) => {
       const num = Math.floor(Number(args[0]));
       const locale = String(args[1] ?? 'en-US');
@@ -1003,7 +934,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_collate',
     module: 'i18n',
-    description: 'Compare strings respecting locale',
     executor: (args) => {
       const a = String(args[0]);
       const b = String(args[1]);
@@ -1019,7 +949,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_locale_info',
     module: 'i18n',
-    description: 'Get locale information',
     executor: (args) => {
       const locale = String(args[0]);
       try {
@@ -1034,7 +963,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_currency_symbol',
     module: 'i18n',
-    description: 'Get currency symbol',
     executor: (args) => {
       const currency = String(args[0] ?? 'USD');
       try {
@@ -1051,7 +979,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_decimal_sep',
     module: 'i18n',
-    description: 'Get decimal separator for locale',
     executor: (args) => {
       const locale = String(args[0] ?? 'en-US');
       try {
@@ -1068,7 +995,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_thousands_sep',
     module: 'i18n',
-    description: 'Get thousands separator for locale',
     executor: (args) => {
       const locale = String(args[0] ?? 'en-US');
       try {
@@ -1085,7 +1011,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_timezone',
     module: 'i18n',
-    description: 'Get timezone offset',
     executor: (args) => {
       const date = new Date(args[0] ?? Date.now());
       const offset = -date.getTimezoneOffset();
@@ -1099,7 +1024,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'i18n_direction',
     module: 'i18n',
-    description: 'Get text direction for locale',
     executor: (args) => {
       const locale = String(args[0] ?? 'en-US');
       const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'yi'];
@@ -1111,7 +1035,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'char_to_unicode',
     module: 'i18n',
-    description: 'Convert character to Unicode code point',
     executor: (args) => {
       const str = String(args[0]);
       if (!str) return 0;
@@ -1122,7 +1045,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_to_char',
     module: 'i18n',
-    description: 'Convert Unicode code point to character',
     executor: (args) => {
       const code = Math.floor(Number(args[0]));
       return String.fromCharCode(code);
@@ -1132,7 +1054,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_category',
     module: 'i18n',
-    description: 'Get Unicode category of character',
     executor: (args) => {
       const char = String(args[0]);
       if (!char) return 'Cc';
@@ -1147,7 +1068,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_name',
     module: 'i18n',
-    description: 'Get Unicode character name',
     executor: (args) => {
       const char = String(args[0]);
       const code = char.charCodeAt(0);
@@ -1165,7 +1085,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_normalize_nfc',
     module: 'i18n',
-    description: 'Normalize Unicode NFC form',
     executor: (args) => {
       return String(args[0]).normalize('NFC');
     }
@@ -1174,7 +1093,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_normalize_nfd',
     module: 'i18n',
-    description: 'Normalize Unicode NFD form',
     executor: (args) => {
       return String(args[0]).normalize('NFD');
     }
@@ -1183,7 +1101,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_normalize_nfkc',
     module: 'i18n',
-    description: 'Normalize Unicode NFKC form',
     executor: (args) => {
       return String(args[0]).normalize('NFKC');
     }
@@ -1192,7 +1109,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_normalize_nfkd',
     module: 'i18n',
-    description: 'Normalize Unicode NFKD form',
     executor: (args) => {
       return String(args[0]).normalize('NFKD');
     }
@@ -1201,7 +1117,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'unicode_is_printable',
     module: 'i18n',
-    description: 'Check if character is printable',
     executor: (args) => {
       const char = String(args[0]);
       const code = char.charCodeAt(0);
@@ -1214,7 +1129,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'charset_encode',
     module: 'encoding',
-    description: 'Encode string with charset',
     executor: (args) => {
       const str = String(args[0]);
       const charset = String(args[1] ?? 'utf-8');
@@ -1229,7 +1143,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'charset_decode',
     module: 'encoding',
-    description: 'Decode string with charset',
     executor: (args) => {
       const str = String(args[0]);
       const charset = String(args[1] ?? 'utf-8');
@@ -1240,7 +1153,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'utf8_encode',
     module: 'encoding',
-    description: 'Encode to UTF-8',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'utf-8').toString('utf-8');
@@ -1250,7 +1162,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'utf8_decode',
     module: 'encoding',
-    description: 'Decode from UTF-8',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'utf-8').toString('utf-8');
@@ -1260,7 +1171,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'utf16_encode',
     module: 'encoding',
-    description: 'Encode to UTF-16',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'utf-16le').toString('hex');
@@ -1270,7 +1180,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'utf16_decode',
     module: 'encoding',
-    description: 'Decode from UTF-16',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'hex').toString('utf-16le');
@@ -1280,7 +1189,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'latin1_encode',
     module: 'encoding',
-    description: 'Encode to Latin-1',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'latin1').toString('latin1');
@@ -1290,7 +1198,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'latin1_decode',
     module: 'encoding',
-    description: 'Decode from Latin-1',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'latin1').toString('latin1');
@@ -1300,7 +1207,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'hex_encode',
     module: 'encoding',
-    description: 'Encode to hexadecimal',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'utf-8').toString('hex');
@@ -1310,7 +1216,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'hex_decode',
     module: 'encoding',
-    description: 'Decode from hexadecimal',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'hex').toString('utf-8');
@@ -1320,7 +1225,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'base32_encode',
     module: 'encoding',
-    description: 'Encode to Base32',
     executor: (args) => {
       const str = String(args[0]);
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -1344,7 +1248,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'base32_decode',
     module: 'encoding',
-    description: 'Decode from Base32',
     executor: (args) => {
       const str = String(args[0]);
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -1370,7 +1273,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'base64url_encode',
     module: 'encoding',
-    description: 'Encode to Base64URL',
     executor: (args) => {
       const str = String(args[0]);
       return Buffer.from(str, 'utf-8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -1380,7 +1282,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'base64url_decode',
     module: 'encoding',
-    description: 'Decode from Base64URL',
     executor: (args) => {
       let str = String(args[0]);
       str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -1392,7 +1293,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'percent_encode',
     module: 'encoding',
-    description: 'Percent/URL encode',
     executor: (args) => {
       return encodeURIComponent(String(args[0]));
     }
@@ -1401,7 +1301,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'percent_decode',
     module: 'encoding',
-    description: 'Percent/URL decode',
     executor: (args) => {
       return decodeURIComponent(String(args[0]));
     }
@@ -1410,7 +1309,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'html_encode',
     module: 'encoding',
-    description: 'HTML entity encode',
     executor: (args) => {
       const str = String(args[0]);
       return str
@@ -1425,7 +1323,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'html_decode',
     module: 'encoding',
-    description: 'HTML entity decode',
     executor: (args) => {
       const str = String(args[0]);
       const map: Record<string, string> = {
@@ -1443,7 +1340,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'punycode_encode',
     module: 'encoding',
-    description: 'Encode to Punycode',
     executor: (args) => {
       const str = String(args[0]);
       try {
@@ -1457,7 +1353,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'punycode_decode',
     module: 'encoding',
-    description: 'Decode from Punycode',
     executor: (args) => {
       const str = String(args[0]);
       try {
@@ -1473,7 +1368,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_word_count',
     module: 'text_analysis',
-    description: 'Count words in text',
     executor: (args) => {
       const str = String(args[0]);
       return str.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -1483,7 +1377,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_char_count',
     module: 'text_analysis',
-    description: 'Count characters in text',
     executor: (args) => {
       return String(args[0]).length;
     }
@@ -1492,7 +1385,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_line_count',
     module: 'text_analysis',
-    description: 'Count lines in text',
     executor: (args) => {
       const str = String(args[0]);
       return str.split('\n').length;
@@ -1502,7 +1394,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_sentence_count',
     module: 'text_analysis',
-    description: 'Count sentences in text',
     executor: (args) => {
       const str = String(args[0]);
       return str.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
@@ -1512,7 +1403,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_readability',
     module: 'text_analysis',
-    description: 'Calculate readability score (Flesch-Kincaid)',
     executor: (args) => {
       const str = String(args[0]);
       const words = str.split(/\s+/).length;
@@ -1529,7 +1419,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_similarity',
     module: 'text_analysis',
-    description: 'Calculate text similarity (0-1)',
     executor: (args) => {
       const a = String(args[0]).toLowerCase();
       const b = String(args[1]).toLowerCase();
@@ -1546,7 +1435,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_levenshtein',
     module: 'text_analysis',
-    description: 'Levenshtein distance between strings',
     executor: (args) => {
       const a = String(args[0]);
       const b = String(args[1]);
@@ -1580,7 +1468,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_jaro_winkler',
     module: 'text_analysis',
-    description: 'Jaro-Winkler distance (0-1)',
     executor: (args) => {
       const a = String(args[0]).toLowerCase();
       const b = String(args[1]).toLowerCase();
@@ -1632,7 +1519,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_hamming',
     module: 'text_analysis',
-    description: 'Hamming distance between equal-length strings',
     executor: (args) => {
       const a = String(args[0]);
       const b = String(args[1]);
@@ -1650,7 +1536,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_lcs',
     module: 'text_analysis',
-    description: 'Longest common subsequence length',
     executor: (args) => {
       const a = String(args[0]);
       const b = String(args[1]);
@@ -1676,7 +1561,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_diff',
     module: 'text_analysis',
-    description: 'Generate diff between texts',
     executor: (args) => {
       const a = String(args[0]).split('\n');
       const b = String(args[1]).split('\n');
@@ -1702,7 +1586,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_patch',
     module: 'text_analysis',
-    description: 'Apply patch to text',
     executor: (args) => {
       const text = String(args[0]);
       const patch = String(args[1]);
@@ -1724,7 +1607,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_tokenize',
     module: 'text_analysis',
-    description: 'Tokenize text into words',
     executor: (args) => {
       const str = String(args[0]);
       return str.match(/\b\w+\b/g) || [];
@@ -1734,7 +1616,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_ngram',
     module: 'text_analysis',
-    description: 'Generate n-grams',
     executor: (args) => {
       const str = String(args[0]);
       const n = Math.floor(Number(args[1] ?? 2));
@@ -1752,7 +1633,6 @@ export function registerStringExtendedFunctions(registry: NativeFunctionRegistry
   registry.register({
     name: 'text_tfidf',
     module: 'text_analysis',
-    description: 'Calculate TF-IDF score',
     executor: (args) => {
       const term = String(args[0]);
       const doc = String(args[1]);
