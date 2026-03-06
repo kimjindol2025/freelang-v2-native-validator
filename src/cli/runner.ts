@@ -21,6 +21,7 @@ import { registerSQLiteNativeFunctions } from '../stdlib/sqlite-native';
 import { registerTCPFunctions } from '../stdlib/net/tcp-native';
 import { registerSystemExtendedFunctions } from '../stdlib-system-extended';
 import { registerFsExtendedFunctions } from '../stdlib-fs-extended';
+import { registerTeamDFunctions } from '../stdlib-team-d-http-db';
 
 export interface RunResult {
   success: boolean;
@@ -53,6 +54,8 @@ export class ProgramRunner {
     registerSystemExtendedFunctions(this.vm.getNativeFunctionRegistry());
     // Phase D: Register file system extended functions (dir_walk, file_stat, etc)
     registerFsExtendedFunctions(this.vm.getNativeFunctionRegistry());
+    // Team D: Register HTTP/DB/Cache/Redis functions (24 libraries, 120+ functions)
+    registerTeamDFunctions(this.vm.getNativeFunctionRegistry());
   }
 
   /**
