@@ -134,7 +134,7 @@ export class ProgramRunner {
    * Phase 2: Preload imported modules recursively
    * Extracts import statements and loads them first to register functions
    */
-  private preloadImports(filePath: string, loadedFiles = new Set<string>()): void {
+  private preloadImports(filePath: string, loadedFiles = new Set<string>(), isMainFile = true): void {
     try {
       // Avoid circular imports
       const absolutePath = path.resolve(filePath);
@@ -170,15 +170,17 @@ export class ProgramRunner {
 
       // Recursively preload imported files first
       for (const importedFile of importedFiles) {
-        this.preloadImports(importedFile, loadedFiles);
+        this.preloadImports(importedFile, loadedFiles, false);
       }
 
-      // Now run this file to register its functions
-      // But only run it for side effects (function registration), not execution
-      const result = this.runString(source);
-      if (!result.success && result.error) {
-        // Log import loading error but don't fail
-        console.warn(`⚠️ Warning loading import ${filePath}: ${result.error}`);
+      // Only run imported modules to register functions, NOT the main file
+      // (The main file will be run separately in runFile)
+      if (!isMainFile) {
+        const result = this.runString(source);
+        if (!result.success && result.error) {
+          // Log import loading error but don't fail
+          console.warn(`⚠️ Warning loading import ${filePath}: ${result.error}`);
+        }
       }
     } catch (error) {
       // Silent fail on import loading
