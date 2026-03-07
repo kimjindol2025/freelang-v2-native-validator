@@ -1,11 +1,12 @@
-# FreeLang v2.7.0 — Zero-Dependency AI Compiler
+# FreeLang v2.8.0 — Zero-Dependency AI Compiler
 
-![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)
 ![Tests](https://img.shields.io/badge/tests-176%2F176%20%E2%9C%85-green.svg)
 ![Dependencies](https://img.shields.io/badge/external%20deps-0%25-brightgreen.svg)
 ![Self-Hosting](https://img.shields.io/badge/self--hosting-compiler.free-orange.svg)
 ![Graph](https://img.shields.io/badge/GraphQL-Native%20(Apollo%20%EB%8C%80%EC%B2%B4)-blueviolet.svg)
+![Expect](https://img.shields.io/badge/Native--Expect-Chai%20%EB%8C%80%EC%B2%B4-red.svg)
 
 FreeLang은 **자기 자신의 소스를 컴파일 및 린트할 수 있는** 제로 외부 의존성 AI 기반 프로그래밍 언어입니다.
 Node.js / TypeScript 기반으로 구현되며, ESLint·Apollo Server·PM2 등 주요 외부 패키지를 모두 내부 엔진으로 대체했습니다.
@@ -72,9 +73,57 @@ println(str(users))
 
 ---
 
-## v2.7.0 신규 기능
+## v2.8.0 신규 기능
 
-### 1. Native-Linter — ESLint 완전 대체
+### 1. Native-Expect — Chai 완전 대체
+
+외부 라이브러리 없이 언어 파서에 내장된 `expect` 어서션 엔진.
+`expect(actual).to.be.equal(expected)` 형식을 **FreeLang 정규 문법**으로 지원합니다.
+
+**지원 문법**:
+
+```free
+test "연산 결과 검증" {
+  let result = calculate(50)
+
+  // 동등 비교
+  expect(result).to.be.equal(100)
+
+  // 부등 비교
+  expect(result).to.be.notEqual(99)
+
+  // boolean 검증
+  expect(result > 0).to.be.true()
+  expect(result < 0).to.be.false()
+
+  // 존재 검증 (non-null/falsy 아님)
+  expect(result).to.be.exists()
+}
+```
+
+**실측 결과 (Proof-Tester 실행)**:
+
+```
+  test_expect.fl
+    + 기본 연산 검증 (58ms)
+    + boolean 검증 (20ms)
+    x 실패 케이스 - Error: Expected 999, got 20 - [63:3] expect(...).to.be.equal(...)
+```
+
+**Zero-cost 보장**: `test {}` 블록이 릴리즈 빌드에서 0바이트로 제거되므로
+내부 `expect()` 도 동시에 제거. 프로덕션 바이너리에 어서션 오버헤드 없음.
+
+**컴파일 경로**:
+```
+expect(x).to.be.equal(y)
+  → Parser: AssertStatement { kind:'equal', actual:x, expected:y }
+  → IR Generator: PUSH x, PUSH y, STR_NEW "[loc]", CALL assert_eq
+  → 릴리즈: case 'test': break → 0바이트
+```
+
+**셀프호스팅 증명**: `expect` 파서 자체를 `test {}` 블록 + `expect()`로 검증.
+
+### 2. Native-Linter — ESLint 완전 대체
 
 `@lint(...)` 어노테이션으로 컴파일 시점에 코드 품질을 강제합니다.
 
@@ -369,6 +418,8 @@ v2.6.0  Level 3 DB 완성, KPM-Linker, MOSS-Kernel-Runner
 v2.7.0  Native-Linter (ESLint 대체), Native-Graph (Apollo 대체),
         MOSS-Compressor (zlib 대체), Self-Monitoring Runtime
         외부 의존성 0% 달성
+v2.8.0  Native-Expect (Chai 대체): expect().to.be.equal() 언어 정규 문법 편입
+        Parser + IR Generator 확장, Zero-cost 릴리즈, Self-Hosting 증명
 ```
 
 ---
@@ -376,12 +427,13 @@ v2.7.0  Native-Linter (ESLint 대체), Native-Graph (Apollo 대체),
 ## 통계
 
 ```
-총 코드:          15,600+ 줄
+총 코드:          15,700+ 줄
 표준 함수:        1,340+ 개  (+5 Native-Graph, +2 Insight)
-언어 키워드:      44개  (+4: schema/query/mutation/resolver)
+언어 키워드:      45개  (+1: expect)
+어서션 종류:      5개 (equal / notEqual / true / false / exists)
 린터 규칙:        3개 (no_unused / shadowing_check / strict_pointers)
-대체된 npm 패키지: 8개 (ESLint/Apollo/PM2/Swagger/nodemailer/zlib/sharp/helmet)
-커밋:             470+개
+대체된 npm 패키지: 9개 (ESLint/Apollo/PM2/Swagger/nodemailer/zlib/sharp/helmet/chai)
+커밋:             475+개
 외부 의존성:      0%
 ```
 
@@ -400,6 +452,6 @@ MIT License © 2026
 
 ---
 
-**현재 버전**: v2.7.0
+**현재 버전**: v2.8.0
 **최종 업데이트**: 2026-03-08
 **외부 의존성**: 0%

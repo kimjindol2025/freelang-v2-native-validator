@@ -50,24 +50,22 @@ export class IRGenerator {
     const result: Inst[] = [];
 
     // 진입 기록: insight_enter(fnName)
+    // insight_enter는 null 반환 → VM이 스택에 push하지 않음 → POP 불필요
     result.push({ op: Op.STR_NEW, arg: fnName });
     result.push({ op: Op.CALL, arg: 'insight_enter' });
-    result.push({ op: Op.POP });  // 반환값 제거
 
-    // 원본 IR에서 RET 직전마다 insight_exit 주입
+    // 원본 IR에서 RET/HALT 직전마다 insight_exit 주입
     for (let i = 0; i < bodyIR.length; i++) {
       const inst = bodyIR[i];
       if (inst.op === Op.RET) {
-        // RET 전에 exit 기록 (반환값은 스택에 있음, 건드리지 않음)
+        // RET 전에 exit 기록. 반환값이 스택 top에 있으므로 건드리지 않음
         result.push({ op: Op.STR_NEW, arg: fnName });
         result.push({ op: Op.CALL, arg: 'insight_exit' });
-        result.push({ op: Op.POP });
         result.push(inst);  // RET
       } else if (inst.op === Op.HALT) {
-        // HALT 전에 exit 기록 (암묵적 return 처리)
+        // HALT 전에 exit 기록 (암묵적 return 없는 함수)
         result.push({ op: Op.STR_NEW, arg: fnName });
         result.push({ op: Op.CALL, arg: 'insight_exit' });
-        result.push({ op: Op.POP });
         result.push(inst);  // HALT
       } else {
         result.push(inst);
