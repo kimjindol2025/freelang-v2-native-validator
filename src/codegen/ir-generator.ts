@@ -39,6 +39,18 @@ export class IRGenerator {
   generateIR(ast: ASTNode, localScope?: string[]): Inst[] {
     const instructions: Inst[] = [];
 
+    // CRITICAL FIX: Initialize localScope from function parameters
+    // This allows traverse() to know which variables are function parameters
+    if (localScope && Array.isArray(localScope)) {
+      this.localScope = new Set(localScope);
+    } else {
+      this.localScope.clear();
+    }
+
+    if (process.env.DEBUG_TRAVERSE) {
+      console.log(`[DEBUG] generateIR initialized localScope:`, Array.from(this.localScope));
+    }
+
     if (!ast) {
       instructions.push({ op: Op.PUSH, arg: 0 });
       instructions.push({ op: Op.HALT });
@@ -260,6 +272,13 @@ export class IRGenerator {
 
     // Normalize node type (lowercase to uppercase mapping)
     const normalizedType = this.normalizeNodeType(node.type);
+
+    // DEBUG: 모든 노드 타입 로깅
+    if (process.env.DEBUG_TRAVERSE) {
+      console.log(`[DEBUG TRAVERSE] node.type="${node.type}" → normalizedType="${normalizedType}"`);
+      if ((node as any).name) console.log(`  → name="${(node as any).name}"`);
+      if ((node as any).value) console.log(`  → has value expression`);
+    }
 
     switch (normalizedType) {
       // ── Literals ────────────────────────────────────────────
@@ -715,6 +734,9 @@ export class IRGenerator {
 
       // ── Variable Declaration (let) ──────────────────────────
       case 'variable':
+        if (process.env.DEBUG_TRAVERSE) {
+          console.log(`[DEBUG TRAVERSE] ✅ REACHED variable case! name="${(node as any).name}"`);
+        }
         // Generate code for value expression
         if (node.value) {
           this.traverse(node.value, out);
@@ -723,6 +745,9 @@ export class IRGenerator {
           out.push({ op: Op.PUSH, arg: 0 });
         }
         // Store in variable
+        if (process.env.DEBUG_TRAVERSE) {
+          console.log(`[DEBUG TRAVERSE] Generating STORE for "${(node as any).name}"`);
+        }
         out.push({ op: Op.STORE, arg: node.name });
         break;
 

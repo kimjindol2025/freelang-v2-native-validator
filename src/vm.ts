@@ -708,7 +708,8 @@ export class VM {
             }
 
             // Generate IR for the entire block (all statements at once)
-            const bodyIR = gen.generateIR(bodyNode);
+            // CRITICAL FIX: Pass function parameters to IR generator for proper scoping
+            const bodyIR = gen.generateIR(bodyNode, fn.params);
 
             // DEBUG: Log generated IR
             if (process.env.DEBUG_STORE) {
