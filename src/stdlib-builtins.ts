@@ -23,6 +23,7 @@ import { registerTeamCFunctions } from './stdlib-team-c-fileio-date';
 import { registerTeamDFunctions } from './stdlib-team-d-http-db';
 import { registerTeamEFunctions } from './stdlib-team-e-async-test';
 import { registerTeamFFunctions } from './stdlib-team-f-security';
+import * as fs from 'fs';
 
 /**
  * stdlib 함수들을 NativeFunctionRegistry에 등록
@@ -607,15 +608,36 @@ export function registerStdlibFunctions(registry: NativeFunctionRegistry): void 
               requestObj.set('body', body);
 
               // Call FreeLang handler
-              const response = serverObj.requestHandler([requestObj]);
+              // NOTE: Due to a FreeLang v2 bug with lambda parameter binding,
+              // we set __http_current_request__ as a global variable instead of passing as parameter
+              try {
+                const vm = registry.getVM();
+                if (vm) {
+                  // Set global __http_current_request__ for handler to access
+                  // Direct access to vars since VM doesn't have setGlobal method
+                  (vm as any).vars.set('__http_current_request__', requestObj);
+                }
 
-              // Send response
-              if (typeof response === 'string') {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(response);
-              } else {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(response));
+                let response;
+                if (vm && serverObj.requestHandler) {
+                  // Call with no parameters (handler accesses request via global)
+                  response = vm.callClosure(serverObj.requestHandler, []);
+                } else {
+                  // Fallback: direct call with requestObj as parameter
+                  response = serverObj.requestHandler([requestObj]);
+                }
+
+                // Send response
+                if (typeof response === 'string') {
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(response);
+                } else {
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify(response));
+                }
+              } catch (callError) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, error: String(callError) }));
               }
             });
           } catch (e) {
@@ -674,6 +696,35 @@ export function registerStdlibFunctions(registry: NativeFunctionRegistry): void 
       });
 
       return serverObj;
+    }
+  });
+
+  registry.register({
+    name: 'http_request',
+    module: 'http',
+    signature: {
+      name: 'http_request',
+      returnType: 'object',
+      parameters: [],
+      category: 'event'
+    },
+    executor: (args) => {
+      const vm = registry.getVM();
+      if (vm) {
+        // Direct access to vars since VM doesn't have getGlobal method
+        const req = (vm as any).vars.get('__http_current_request__');
+        if (req) {
+          return req;
+        }
+      }
+      // Return a default request map with all keys initialized
+      const emptyReq = new Map<string, any>();
+      emptyReq.set('method', '');
+      emptyReq.set('path', '');
+      emptyReq.set('query', new Map());
+      emptyReq.set('body', '');
+      emptyReq.set('headers', new Map());
+      return emptyReq;
     }
   });
 
