@@ -142,6 +142,7 @@ export interface Inst {
   op: Op;
   arg?: number | string | number[];
   sub?: Inst[];  // sub-program for ARR_MAP/ARR_FILTER, CALL
+  params?: string[];  // parameter names for LAMBDA_SET_BODY
 }
 
 // ── AI Intent (what AI sends) ───────────────────────────────

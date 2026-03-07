@@ -1,0 +1,66 @@
+// MOSS-Uploader 테스트 - RFC 7578 Multipart 파일 업로드 서버
+// multer 외부 의존성 0% 대체 증명
+// 실행: npx ts-node src/index.ts tests/moss-uploader-test.fl
+
+let upload_dir = "/tmp/moss-uploads"
+
+// 업로드 디렉토리 생성
+dir_create(upload_dir)
+
+let server = http_server_create(7900)
+
+http_on_request(server, fn() {
+    let req = http_request()
+    let method = map_get(req, "method")
+    let path = map_get(req, "path")
+
+    // GET / - 업로드 폼
+    if (path == "/") {
+        http_set_header("Content-Type", "text/html")
+        return "<html><body><h2>MOSS-Uploader (FreeLang Native)</h2><form method=POST action=/upload enctype=multipart/form-data><input type=file name=file><input type=text name=title placeholder=title><button>Upload</button></form></body></html>"
+    }
+
+    // POST /upload - 파일 수신
+    if (path == "/upload") {
+        let files = map_get(req, "files")
+        let fields = map_get(req, "fields")
+
+        // files 맵에서 "file" 키 추출
+        let file_obj = map_get(files, "file")
+        let title = map_get(fields, "title")
+
+        if (file_obj == null) {
+            http_set_status(400)
+            return "{\"ok\":false,\"error\":\"no file\"}"
+        }
+
+        let filename = map_get(file_obj, "filename")
+        let file_size = map_get(file_obj, "size")
+        let file_ct = map_get(file_obj, "content_type")
+
+        // 매직 넘버 보안 검증
+        let file_data = map_get(file_obj, "data")
+        let real_mime = file_magic_check(file_data)
+        let ext = file_get_extension(filename)
+
+        // 디스크 저장
+        let saved_path = upload_save(file_obj, upload_dir)
+
+        print("업로드 완료: " + filename + " → " + saved_path)
+        print("크기: " + file_size + " bytes | MIME: " + real_mime)
+
+        return "{\"ok\":true,\"filename\":\"" + filename + "\",\"path\":\"" + saved_path + "\",\"size\":" + file_size + ",\"mime\":\"" + real_mime + "\",\"title\":\"" + title + "\"}"
+    }
+
+    // GET /health
+    if (path == "/health") {
+        return "{\"ok\":true,\"service\":\"MOSS-Uploader\",\"version\":\"1.0\"}"
+    }
+
+    http_set_status(404)
+    return "{\"ok\":false,\"error\":\"not found\"}"
+})
+
+http_listen(server)
+print("MOSS-Uploader 서버 시작: http://localhost:7900")
+print("외부 의존성: 0% (multer 불필요)")

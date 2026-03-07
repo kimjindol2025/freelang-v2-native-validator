@@ -1369,10 +1369,17 @@ export class IRGenerator {
     // Store lambda body as instructions
     const bodyInstructions: Inst[] = [];
     this.traverse(lambda.body, bodyInstructions);
+
+    // Extract parameter names for proper variable binding
+    const paramNames = lambda.params?.map((p: any) =>
+      typeof p === 'string' ? p : (p.name || '')
+    ) || [];
+
     out.push({
       op: Op.LAMBDA_SET_BODY,
       arg: lambda.params.length,
-      sub: bodyInstructions
+      sub: bodyInstructions,
+      params: paramNames  // Include parameter names for VM to bind
     });
   }
 
