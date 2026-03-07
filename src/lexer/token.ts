@@ -133,7 +133,10 @@ export enum TokenType {
   SCHEMA = 'SCHEMA',     // schema 블록 정의
   RESOLVER = 'RESOLVER', // @resolver 어노테이션 대상 키워드
   QUERY = 'QUERY',       // query 타입 정의
-  MUTATION = 'MUTATION'  // mutation 타입 정의
+  MUTATION = 'MUTATION', // mutation 타입 정의
+
+  // Self-Formatting Compiler: 포맷 정책 어노테이션
+  FORMAT_POLICY = 'FORMAT_POLICY'  // @format(indent:4, semi:true, ...) 어노테이션
 }
 
 /**

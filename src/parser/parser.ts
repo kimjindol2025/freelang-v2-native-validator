@@ -458,7 +458,9 @@ export class Parser {
         }
 
         // Self-Monitoring Kernel: @monitor 등 어노테이션 수집 (함수 선언 앞)
-        const pendingAnnotations: string[] = [];
+        // topLevelAnnotations: 루프 전에 수집된 어노테이션 (첫 fn에 적용 후 클리어)
+        const pendingAnnotations: string[] = [...topLevelAnnotations];
+        topLevelAnnotations.length = 0;  // 첫 번째 fn에 소비
         while (this.check(TokenType.AT)) {
           this.advance(); // '@' 소비
           if (this.check(TokenType.IDENT)) {
